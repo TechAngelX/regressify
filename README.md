@@ -23,8 +23,12 @@ A visual salary prediction tool comparing regression methods, to help students a
 ---
 
 ## About The Project
+**Regressify** is an educational web application that makes machine learning regression models easy to understand through interactive visualisations.  
+ It depicts standard regression algorithms—including Linear Regression, Polynomial Regression, Decision Trees, and Neural Networks—and features an interactive Noise Generator to demonstrate model variance and robustness.
 
-**Regressify** is an educational web application that makes machine learning regression models easy to understand through interactive visualisations. Built for students, educators, and data science enthusiasts, it demonstrates how different algorithms "think" about the same data.
+Inspiration: This project was inspired by auditing the Master’s degree module COMP0088: Introduction to Machine Learning at UCL, taught by Dr. Matthew Caldwell. I created it as a visual "cheat sheet" to quickly reference how different ML models behave and identify the best scenarios to apply them. Regressify was built to bridge the gap between theoretical math and practical application - exactly where I'm at.
+
+Built for students, educators, and data science enthusiasts, it demonstrates how different algorithms "think" about the same data.
 
 ### Why Regressify?
 
