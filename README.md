@@ -1,4 +1,4 @@
-cat > README.md << 'EOF'
+
 # Regressify
 
 ### Interactive Regression Visualisation Tool
@@ -7,19 +7,19 @@ cat > README.md << 'EOF'
 
 <div align="center">
 
+<img src="./public/images/screenshot1.png" alt="Regressify Screenshot" width="800" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; margin: 20px 0;">
 
-<div align="center">
-
-![Regressify Screenshot](./public/images/screenshot1.png)
+<br/>
 
 [![React](https://img.shields.io/badge/React-18.x-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
 [![Recharts](https://img.shields.io/badge/Recharts-2.x-8884d8?style=for-the-badge)](https://recharts.org/)
 [![Vite](https://img.shields.io/badge/Vite-5.x-646cff?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
 
-[View Demo](#) • [Report Bug](#) • [Request Feature](#)
+[View Demo](https://regress.techangelx.com/) • [Report Bug](#) • [Request Feature](#)
 
 </div>
+
 ---
 
 ## About The Project
