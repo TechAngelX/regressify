@@ -3,7 +3,7 @@
 
 ### Interactive Regression Visualisation Tool
 
-**A visual salary prediction tool comparing regression methods, to help students and developers understand machine learning algorithms through real-world scenarios.**
+A visual salary prediction tool comparing regression methods, to help students and developers understand machine learning algorithms through real-world scenarios.
 
 <div align="center">
 
