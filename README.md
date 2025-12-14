@@ -7,9 +7,10 @@ cat > README.md << 'EOF'
 
 <div align="center">
 
-<img src="./public/images/screenshot1.png" alt="Regressify Screenshot" width="800" style="border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.15); border: 1px solid #e5e7eb; margin: 20px 0;">
 
-<br/>
+<div align="center">
+
+![Regressify Screenshot](./public/images/screenshot1.png)
 
 [![React](https://img.shields.io/badge/React-18.x-61dafb?style=for-the-badge&logo=react&logoColor=white)](https://reactjs.org/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.x-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
@@ -19,7 +20,6 @@ cat > README.md << 'EOF'
 [View Demo](#) • [Report Bug](#) • [Request Feature](#)
 
 </div>
-
 ---
 
 ## About The Project
