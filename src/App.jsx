@@ -1,187 +1,63 @@
 // src/App.jsx
-import React, { useState } from 'react';
-import { LineChart, Line, ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import React, { useState, useMemo } from 'react';
+import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { generateData, calculateModelFits, descriptions } from './data/salaryModels';
+
+// Custom Tooltip Component
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    // payload[0] might be the line or the scatter, we need to find the data object
+    // usually payload[0].payload gives the full data object for that x-index
+    const data = payload[0].payload;
+    const isOutlier = data.isOutlier;
+
+    return (
+        <div className={`p-4 rounded-lg shadow-xl border-2 z-50 ${isOutlier ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100'}`}>
+          <p className="font-bold text-gray-800 mb-1">{label} years experience</p>
+
+          {/* Actual Salary */}
+          <p className={`${isOutlier ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+            Actual: £{Math.round(data.actual)}k
+          </p>
+
+          {/* Prediction */}
+          <p className="text-indigo-600 font-semibold">
+            Predicted: £{Math.round(data.predicted)}k
+          </p>
+
+          {/* The Story (Only for outliers) */}
+          {isOutlier && (
+              <div className="mt-2 pt-2 border-t border-red-200">
+                <p className="text-xs font-bold text-red-800 uppercase tracking-wide">Outlier Detected</p>
+                <p className="text-sm text-red-700 italic mt-1 max-w-[200px]">
+                  "{data.label}"
+                </p>
+              </div>
+          )}
+        </div>
+    );
+  }
+  return null;
+};
 
 function App() {
   const [activeModel, setActiveModel] = useState('linear');
   const [showDetails, setShowDetails] = useState(false);
 
-  // Real world data: Years of experience vs Salary
-  // Simulating realistic tech industry patterns
-  const generateData = () => {
-    const data = [];
-    for (let experience = 0; experience <= 20; experience++) {
-      // Base salary pattern: starts at 45k, rapid growth early on,
-      // then plateaus as you reach senior levels
-      const baseSalary = 45 + 15 * experience - 0.3 * experience * experience;
+  // Initialize data with state, so we can regenerate it
+  const [rawData, setRawData] = useState(generateData);
 
-      // Real world noise: salary isn't perfect. It varies by negotiation, luck, etc.
-      // Represents +/- 10k variance
-      const realWorldVariation = (Math.random() - 0.5) * 20;
-
-      const salary = baseSalary + realWorldVariation;
-
-      data.push({
-        experience,
-        actual: Math.max(salary, 40) // minimum salary floor
-      });
-    }
-    return data;
+  const handleRegenerate = () => {
+    setRawData(generateData());
   };
 
-  // Keep data consistent across renders so k-NN doesn't jump around
-  const [rawData] = useState(generateData());
+  // Calculate models based on the raw data
+  const models = useMemo(() => calculateModelFits(rawData), [rawData]);
 
-  // Linear - The "best fit line" approach
-  const linearFit = rawData.map(d => ({
-    ...d,
-    predicted: 45 + 5 * d.experience
-  }));
-
-  // Polynomial - Adding a curve to catch the early career growth
-  const polynomialFit = rawData.map(d => ({
-    ...d,
-    predicted: 45 + 15 * d.experience - 0.3 * d.experience * d.experience
-  }));
-
-  // Decision Tree - Splitting people into buckets (Junior, Mid, Senior)
-  const decisionTreeFit = rawData.map(d => {
-    let predicted;
-    if (d.experience < 2) predicted = 50; // Junior band
-    else if (d.experience < 5) predicted = 75; // Mid-level band
-    else if (d.experience < 10) predicted = 105; // Senior band
-    else if (d.experience < 15) predicted = 120; // Lead band
-    else predicted = 130; // Principal band
-    return { ...d, predicted };
-  });
-
-  // Random Forest - Averaging out multiple trees to smooth the steps
-  const randomForestFit = rawData.map(d => {
-    // Tree 1 (Granular view)
-    let p1 = d.experience < 3 ? 55 : d.experience < 8 ? 90 : d.experience < 14 ? 115 : 125;
-    // Tree 2 (Broad view)
-    let p2 = d.experience < 5 ? 60 : d.experience < 12 ? 100 : 130;
-    // Tree 3 (Early career bias)
-    let p3 = d.experience < 2 ? 45 : d.experience < 6 ? 80 : d.experience < 10 ? 110 : 128;
-
-    // The prediction is just the average of these different viewpoints
-    return { ...d, predicted: (p1 + p2 + p3) / 3 };
-  });
-
-  // SVM - Trying to fit a "tube" around the data points
-  const svmFit = rawData.map(d => ({
-    ...d,
-    // Simulating an RBF kernel curve - smooth and robust
-    predicted: 48 + 14.5 * d.experience - 0.28 * d.experience * d.experience
-  }));
-
-  // k-NN - "What are people similar to me earning?"
-  const knnFit = rawData.map((targetPoint) => {
-    // Calculate distance to every other person in the dataset
-    const withDistances = rawData.map(d => ({
-      ...d,
-      distance: Math.abs(d.experience - targetPoint.experience)
-    }));
-
-    // Grab the 3 closest matches
-    const k = 3;
-    const neighbors = withDistances.sort((a, b) => a.distance - b.distance).slice(0, k);
-
-    // Average their actual salaries
-    const avgSalary = neighbors.reduce((sum, n) => sum + n.actual, 0) / k;
-
-    return { ...targetPoint, predicted: avgSalary };
-  });
-
-  // Neural Network - The heavy lifter, finding complex/hidden patterns
-  const neuralNetFit = rawData.map(d => ({
-    ...d,
-    predicted: 45 + 15 * d.experience - 0.3 * d.experience * d.experience +
-        3 * Math.sin(d.experience * 0.4) // Captures subtle market cycles
-  }));
-
-  const models = {
-    linear: { data: linearFit, name: 'Linear Regression', color: '#3b82f6' },
-    polynomial: { data: polynomialFit, name: 'Polynomial Regression', color: '#10b981' },
-    tree: { data: decisionTreeFit, name: 'Decision Tree', color: '#f59e0b' },
-    forest: { data: randomForestFit, name: 'Random Forest', color: '#059669' },
-    svm: { data: svmFit, name: 'SVM', color: '#ec4899' },
-    knn: { data: knnFit, name: 'k-NN (k=3)', color: '#ea580c' },
-    neural: { data: neuralNetFit, name: 'Neural Network', color: '#8b5cf6' }
-  };
-
-  const descriptions = {
-    linear: {
-      title: 'Linear Regression',
-      desc: 'The simplest approach. It assumes salary is a straight line upwards: &pound;5k extra for every year you work. It ignores the fact that growth usually slows down later in your career.',
-      when: 'Great for simple trends, but life is rarely a straight line.',
-      howItWorks: 'It draws a straight line (y = mx + b) right through the middle of the mess. It looks at the scattered dots (real people) and finds the average path. If you have 5 years experience, it predicts &pound;70k, ignoring that some people make &pound;60k and others &pound;80k.',
-      realExample: 'It\'s like saying "Every year adds exactly &pound;5k to your worth." Simple, easy to explain, but often too simple for the real world.',
-      visualPattern: 'A straight diagonal line. The dots are scattered all around it, showing the "noise" of real life.',
-      pros: ['Super easy to explain', 'Calculates instantly', 'Hard to break (doesn\'t overfit)', 'Great baseline to start with'],
-      cons: ['Misses curves (like career plateaus)', 'Too rigid for complex data', 'Oversimplifies reality']
-    },
-    polynomial: {
-      title: 'Polynomial Regression',
-      desc: 'Now we\'re adding curves. This model understands that you learn fast in the beginning (salary spikes) but eventually hit a ceiling (salary plateau).',
-      when: 'When the trend clearly isn\'t straight (e.g. rapid growth then slowing down).',
-      howItWorks: 'Instead of just x (years), we use x&sup2; or x&sup3;. This lets the line bend. It fits the "inverted U" shape of a typical career path much better than a straight line.',
-      realExample: 'Junior devs get big raises fast. Principal devs get smaller percentage raises. This model captures that changing speed.',
-      visualPattern: 'A smooth curve that climbs steep and then flattens out. It follows the "shape" of the data better.',
-      pros: ['Fits curved patterns nicely', 'Still fairly easy to interpret', 'Matches natural growth cycles'],
-      cons: ['Can go wild at the edges (extrapolation)', 'If you add too many curves, it gets messy', 'Harder to explain the math']
-    },
-    tree: {
-      title: 'Decision Tree Regression',
-      desc: 'Think of this like an HR flowchart. It creates strict salary bands based on experience brackets: Junior, Mid, Senior, Lead.',
-      when: 'When you need clear-cut rules that humans can easily follow.',
-      howItWorks: 'It asks questions: "Less than 2 years? Pay &pound;50k. Less than 5? Pay &pound;75k." It doesn\'t care about the specific year, just which bucket you fall into.',
-      realExample: 'Exactly like job ads: "3-5 years experience: &pound;75k-&pound;85k." It groups everyone in that range together.',
-      visualPattern: 'Steps or stairs. Flat lines that jump suddenly. It doesn\'t look natural, but it\'s very logical.',
-      pros: ['Crystal clear logic', 'Handles outliers well', 'Mimics human decision making', 'No complex math needed'],
-      cons: ['Unrealistic jumps (4.9 years vs 5.0 years)', 'Can be unstable', 'Misses the nuance of individual years']
-    },
-    forest: {
-      title: 'Random Forest',
-      desc: 'This is just a team of Decision Trees working together. We ask 100 different trees to guess the salary, then take the average. It smooths out the edges.',
-      when: 'When accuracy matters more than having a simple formula.',
-      howItWorks: 'One tree might obsess over early career, another over late career. By averaging them (the "ensemble"), we get rid of the biases and get a solid prediction.',
-      realExample: 'It\'s like asking 50 different managers what they\'d pay you and taking the average. You get a much fairer number than asking just one person.',
-      visualPattern: 'Jagged steps, but much smaller and smoother than a single Tree. It starts to look like a curve.',
-      pros: ['Extremely accurate', 'Very robust (hard to fool)', 'Handles messy data brilliantly'],
-      cons: ['Total "black box" (hard to see why it decided X)', 'Slow to train', 'Computer heavy']
-    },
-    svm: {
-      title: 'Support Vector Machine (SVM)',
-      desc: 'Imagine trying to wrap a wide rubber band around your data points. SVM tries to find the "tube" that fits the most points comfortably.',
-      when: 'When you have lots of different factors (dimensions) and need a robust curve.',
-      howItWorks: 'It uses a "kernel trick" to project the data into higher dimensions to find the best fit. It cares more about the general flow than individual outliers.',
-      realExample: 'It ignores the guy making &pound;200k with 2 years experience (the outlier) to focus on where the majority of people sit.',
-      visualPattern: 'A smooth, stiff curve. It feels "tighter" and often more conservative than the Polynomial.',
-      pros: ['Great for high-dimensional data', 'Ignores extreme outliers', 'Very flexible'],
-      cons: ['Painful to tune (gamma, epsilon, etc.)', 'Slow on big datasets', 'Math is scary']
-    },
-    knn: {
-      title: 'k-Nearest Neighbors (k-NN)',
-      desc: 'The copycat method. "Show me the 3 people most similar to this candidate, and I\'ll guess their salary based on them."',
-      when: 'When local similarity matters more than a global trend.',
-      howItWorks: 'If you have 7 years experience, it ignores the Juniors and Principals. It finds the nearest existing employees (e.g. 6.8, 7.0, 7.2 years) and averages their pay.',
-      realExample: 'Real estate agents do this: "This house is worth X because the 3 houses next door sold for X."',
-      visualPattern: 'A wobbly, jagged line. It reacts to every local cluster of dots. If there\'s a random high earner, the line bumps up right there.',
-      pros: ['Zero training time', 'Very intuitive concept', 'Adapts to local changes instantly'],
-      cons: ['Slow when you have to predict', 'Gets confused by useless data', 'Sensitive to noise']
-    },
-    neural: {
-      title: 'Neural Network Regression',
-      desc: 'The brain approach. Layers of "neurons" learn complex, hidden patterns—like how market cycles or specific skill combos affect pay.',
-      when: 'When you have massive data and the relationship is too complex for simple math.',
-      howItWorks: 'Data goes in, flows through layers of calculations, and salary comes out. It learns its own rules. It can spot things we miss, like "Salary dips at year 5 then spikes at year 7".',
-      realExample: 'It\'s like an experienced recruiter who just "knows" a salary based on a thousand tiny factors they can\'t even explain.',
-      visualPattern: 'A smooth but wavy curve. It follows the trend but captures subtle oscillations and shifts that others miss.',
-      pros: ['Unbeatable on complex tasks', 'Learns hidden features', 'Gets smarter with more data'],
-      cons: ['Needs thousands of examples', 'Total black box', 'Can overthink it (overfit) if you aren\'t careful']
-    }
-  };
+  // Separate data for rendering layers
+  const currentData = models[activeModel].data;
+  const normalPoints = currentData.filter(d => !d.isOutlier);
+  const outlierPoints = currentData.filter(d => d.isOutlier);
 
   return (
       <div className="w-full min-h-screen p-8 bg-gradient-to-br from-slate-50 to-indigo-50">
@@ -228,52 +104,101 @@ function App() {
             ))}
           </div>
 
+          {/* Chart Header: Legend & Refresh */}
+          <div className="flex justify-between items-center mb-4 px-2">
+            <div className="flex gap-4 text-sm font-medium">
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-slate-400"></span>
+                <span className="text-slate-600">Normal Employee</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-3 h-3 rounded-full bg-red-500"></span>
+                <span className="text-red-600">Outlier (Hover me!)</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="w-6 h-1 rounded bg-current" style={{ color: models[activeModel].color }}></span>
+                <span style={{ color: models[activeModel].color }}>Prediction</span>
+              </div>
+            </div>
+
+            {/* Prominent Regenerate Button */}
+            <button
+                onClick={handleRegenerate}
+                className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 px-5 py-2.5 rounded-full transform hover:scale-105"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+              </svg>
+              Regenerate Noise
+            </button>
+          </div>
+
           {/* Chart */}
           <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
             <ResponsiveContainer width="100%" height={400}>
-              <LineChart data={models[activeModel].data}>
+              {/* Added margins to prevent axis labels from being cut off */}
+              <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
                     dataKey="experience"
-                    label={{ value: 'Years of Experience', position: 'insideBottom', offset: -5 }}
+                    label={{ value: 'Years of Experience', position: 'insideBottom', offset: -10 }}
                     stroke="#6b7280"
+                    type="number"
+                    domain={[0, 20]}
                 />
                 <YAxis
-                    label={{ value: 'Salary (&pound;1000s)', angle: -90, position: 'insideLeft' }}
+                    label={{ value: 'Salary (£1000s)', angle: -90, position: 'insideLeft', offset: 0 }}
                     stroke="#6b7280"
-                    domain={[30, 140]}
+                    domain={[20, 160]}
                 />
-                <Tooltip
-                    formatter={(value, name) => {
-                      if (name === 'actual') return [`&pound;${Math.round(value)}k`, 'Actual Salary'];
-                      return [`&pound;${Math.round(value)}k`, 'Predicted Salary'];
-                    }}
-                    labelFormatter={(label) => `${label} years experience`}
-                />
+                <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 2 }} />
+
+                {/* 1. Normal Points (Grey) */}
                 <Scatter
-                    data={models[activeModel].data}
+                    dataKey="actual"
+                    data={normalPoints}
                     fill="#94a3b8"
-                    name="actual"
+                    name="Normal Employees"
                     shape="circle"
                 />
+
+                {/* 2. Outliers (Red & Pulsing) */}
+                <Scatter
+                    dataKey="actual"
+                    data={outlierPoints}
+                    fill="#ef4444"
+                    name="Outliers"
+                    shape="circle"
+                    r={6}
+                />
+
                 <Line
+                    data={currentData}
                     type="monotone"
                     dataKey="predicted"
                     stroke={models[activeModel].color}
                     strokeWidth={3}
-                    dot={true}
-                    name="predicted"
+                    dot={false}
+                    name="Prediction Model"
+                    animationDuration={1000}
                 />
-              </LineChart>
+              </ComposedChart>
             </ResponsiveContainer>
           </div>
 
           {/* Description */}
           <div className="bg-white rounded-xl shadow-xl p-6">
             <div className="flex justify-between items-start mb-3">
-              <h2 className="text-2xl font-bold" style={{ color: models[activeModel].color }}>
-                {descriptions[activeModel].title}
-              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h2 className="text-2xl font-bold" style={{ color: models[activeModel].color }}>
+                  {descriptions[activeModel].title}
+                </h2>
+                {/* Math Badge */}
+                <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-mono rounded border border-gray-200">
+                  {descriptions[activeModel].math}
+                </span>
+              </div>
+
               <button
                   onClick={() => setShowDetails(!showDetails)}
                   className="px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm font-medium text-gray-700 transition-colors"
@@ -450,7 +375,7 @@ function App() {
         <div className="mt-12 text-center pb-8">
           <div className="border-t border-gray-300 pt-6">
             <p className="text-gray-600 text-sm">
-              &copy; 2024 <span className="font-semibold">Ricki Angel</span> | <span className="font-semibold text-indigo-600">Tech Angel X</span>
+              &copy; {new Date().getFullYear()} <span className="font-semibold">Ricki Angel</span> | <span className="font-semibold text-indigo-600">Tech Angel X</span>
             </p>
             <p className="text-gray-500 text-xs mt-1">
               Interactive Regression Visualisation Tool
