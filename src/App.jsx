@@ -1,13 +1,11 @@
 // src/App.jsx
 import React, { useState, useMemo } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { generateData, calculateModelFits, descriptions } from './data/salaryModels';
+import { generateData, calculateModelFits, descriptions, generateFittingExamples } from './data/salaryModels';
 
 // Custom Tooltip Component
 const CustomTooltip = ({ active, payload, label }) => {
   if (active && payload && payload.length) {
-    // payload[0] might be the line or the scatter, we need to find the data object
-    // usually payload[0].payload gives the full data object for that x-index
     const data = payload[0].payload;
     const isOutlier = data.isOutlier;
 
@@ -40,12 +38,41 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
+// Mini Chart for the Educational Section
+const MiniChart = ({ data, lineKey, color, title, desc, analogy }) => (
+    <div className="bg-white p-4 rounded-lg border border-slate-200 shadow-sm flex flex-col h-full">
+      <h4 className="text-center font-bold text-slate-700 mb-2">{title}</h4>
+      <div className="h-32 w-full mb-3">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={data} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+            <Scatter dataKey="actual" fill="#cbd5e1" r={2} />
+            <Line type="monotone" dataKey={lineKey} stroke={color} strokeWidth={2} dot={false} />
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="space-y-2">
+        <p className="text-xs text-slate-600 leading-relaxed font-medium">
+          {desc}
+        </p>
+        <div className="bg-slate-50 p-2 rounded border border-slate-100">
+          <p className="text-[10px] text-slate-500 italic">
+            <span className="font-bold not-italic text-slate-600">Analogy: </span>
+            {analogy}
+          </p>
+        </div>
+      </div>
+    </div>
+);
+
 function App() {
   const [activeModel, setActiveModel] = useState('linear');
   const [showDetails, setShowDetails] = useState(false);
 
   // Initialize data with state, so we can regenerate it
   const [rawData, setRawData] = useState(generateData);
+
+  // Static data for the explanation section
+  const [fittingData] = useState(generateFittingExamples);
 
   const handleRegenerate = () => {
     setRawData(generateData());
@@ -136,7 +163,6 @@ function App() {
           {/* Chart */}
           <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
             <ResponsiveContainer width="100%" height={400}>
-              {/* Added margins to prevent axis labels from being cut off */}
               <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
                 <XAxis
@@ -187,7 +213,7 @@ function App() {
           </div>
 
           {/* Description */}
-          <div className="bg-white rounded-xl shadow-xl p-6">
+          <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
             <div className="flex justify-between items-start mb-3">
               <div className="flex items-center gap-3 flex-wrap">
                 <h2 className="text-2xl font-bold" style={{ color: models[activeModel].color }}>
@@ -241,7 +267,6 @@ function App() {
                   </div>
 
                   <div className="grid md:grid-cols-2 gap-4">
-                    {/* Added h-full and flex properties to ensure equal height boxes */}
                     <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4 h-full flex flex-col">
                       <h3 className="font-bold text-green-800 mb-2">Pros</h3>
                       <ul className="text-sm text-green-900 space-y-1 flex-grow">
@@ -263,117 +288,181 @@ function App() {
             )}
           </div>
 
+          {/* New Educational Section: The Goldilocks Problem */}
+          <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl shadow-inner p-6">
+            <h3 className="text-xl font-bold text-slate-700 mb-4 text-center">
+              The Goldilocks Problem: Bias vs. Variance
+            </h3>
+            <div className="grid md:grid-cols-3 gap-4">
+
+              {/* 1. UNDERFITTING */}
+              <MiniChart
+                  data={fittingData}
+                  lineKey="underfit"
+                  color="#ef4444"
+                  title="Underfitting (High Bias)"
+                  desc="The model is too simple. It ignores the details in your training data."
+                  analogy="The Lazy Robot. You train it with 1,000 photos of bananas and lemons. It looks at them and makes a lazy rule: 'Everything Yellow is a Banana.' When you test it with a Lemon (New Data), it wrongly calls it a Banana. It failed to learn the shape."
+              />
+
+              {/* 2. OPTIMAL */}
+              <MiniChart
+                  data={fittingData}
+                  lineKey="optimal"
+                  color="#10b981"
+                  title="Optimal Fit"
+                  desc="Just right. The model learns the general rules (signal) but ignores the random accidents (noise)."
+                  analogy="The Smart Robot. You train it with the same photos. It learns that 'Curved = Banana' and 'Round = Lemon.' It ignores the stickers or bruises on the fruit. When you give it a pristine Lemon (New Data), it correctly identifies it."
+              />
+
+              {/* 3. OVERFITTING */}
+              <MiniChart
+                  data={fittingData}
+                  lineKey="overfit"
+                  color="#3b82f6"
+                  title="Overfitting (High Variance)"
+                  desc="The model is obsessed. It memorizes the training data perfectly—including the mistakes."
+                  analogy="The Obsessive Robot. You train it with bananas that happen to have 'Chiquita' stickers. It learns: 'It is ONLY a banana if it has a sticker.' When you hand it a banana without a sticker (New Data), it says 'Not a Banana.' It learned the noise, not the fruit."
+              />
+            </div>
+            <p className="text-gray-700 my-3 text-center max-w-2xl mx-auto">
+              The goal of Machine Learning is to find the sweet spot: a model complex enough to capture the true
+              underlying pattern (the signal), yet simple enough to ignore random accidents (noise). This
+              often means accepting a small loss in training accuracy in exchange for better reliability and performance
+              on new, unseen data.
+            </p>
+
+          </div>
+
+
           {/* Why the scatter/noise exists */}
           <div className="mt-6 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-lg p-6">
-            <h3 className="text-xl font-bold text-orange-700 mb-3">Understanding the Scatter: Real-World Variation</h3>
+            <h3 className="text-xl font-bold text-orange-700 mb-3 text-center">Understanding the Scatter: Real-World
+              Variation</h3>
             <p className="text-gray-700 mb-3">
-              In the real world, salary isn't ONLY determined by years of experience. The scatter represents real-world variation from:
-            </p>
-            <div className="grid md:grid-cols-2 gap-4">
-              {/* Added h-full to ensure equal height boxes */}
-              <div className="bg-white rounded-lg p-4 h-full">
-                <h4 className="font-semibold text-gray-800 mb-2">Individual Factors:</h4>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li>&bull; Negotiation skills</li>
-                  <li>&bull; Education level (BSc vs MSc vs PhD)</li>
-                  <li>&bull; Specialisation (ML engineer vs web dev)</li>
-                  <li>&bull; Performance and productivity</li>
-                </ul>
-              </div>
-              <div className="bg-white rounded-lg p-4 h-full">
-                <h4 className="font-semibold text-gray-800 mb-2">External Factors:</h4>
-                <ul className="text-sm text-gray-700 space-y-1">
-                  <li>&bull; Company size (startup vs FAANG)</li>
-                  <li>&bull; Geographic location</li>
-                  <li>&bull; Market timing (hired in boom vs recession)</li>
-                  <li>&bull; Industry (finance vs non-profit)</li>
-                </ul>
-              </div>
-            </div>
-            <div className="mt-4 bg-blue-100 border-l-4 border-blue-500 p-3 rounded">
-              <p className="text-sm text-blue-900">
-                <strong>This is why we need regression:</strong> We can't predict exact salaries, but we can predict the <em>trend</em> and understand the general relationship. The model finds the signal through the noise.
+              In the real world, salary isn't ONLY determined by years of experience. The scatter represents
+                real-world variation from:
               </p>
-            </div>
-          </div>
-
-          {/* Ridge & Lasso explanation */}
-          <div className="mt-6 grid md:grid-cols-2 gap-6">
-            {/* Added h-full and flex properties for alignment */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-6 h-full flex flex-col">
-              <h3 className="text-xl font-bold text-purple-700 mb-3">Ridge Regression</h3>
-              <p className="text-gray-700 mb-3">
-                Imagine predicting salary with 50 factors: experience, education, GitHub commits, interview score, previous salary, etc.
-              </p>
-              <div className="bg-white rounded-lg p-4 mb-3 flex-grow">
-                <p className="text-sm text-gray-600">Ridge says: "Keep all 50 factors, but don't let any one dominate too much"</p>
-              </div>
-              <p className="text-gray-700 text-sm">
-                <strong>Effect:</strong> Prevents overfitting to quirks in your data. All factors contribute a little, nothing goes crazy.
-              </p>
-              <p className="text-purple-600 text-sm mt-2 font-semibold">
-                Real example: Predicting salary with experience, education, skills, location, company size, and 45 other factors
-              </p>
-            </div>
-
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg p-6 h-full flex flex-col">
-              <h3 className="text-xl font-bold text-green-700 mb-3">Lasso Regression</h3>
-              <p className="text-gray-700 mb-3">
-                Same 50 factors, but Lasso is ruthless: it eliminates the weak ones entirely.
-              </p>
-              <div className="bg-white rounded-lg p-4 mb-3 flex-grow">
-                <p className="text-sm text-gray-600">Lasso says: "Only 8 factors actually matter. The other 42? Irrelevant. Gone."</p>
-              </div>
-              <p className="text-gray-700 text-sm">
-                <strong>Effect:</strong> Automatic feature selection. You discover that only experience, education, location, and specialisation really drive salary.
-              </p>
-              <p className="text-green-600 text-sm mt-2 font-semibold">
-                Real example: Discovers that favourite programming language, coffee preference, and desk setup don't predict salary
-              </p>
-            </div>
-          </div>
-
-          {/* Neural network deep dive */}
-          <div className="mt-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg p-6">
-            <h3 className="text-2xl font-bold text-indigo-700 mb-4">Neural Network Regression Explained</h3>
-
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="h-full">
-                <h4 className="font-bold text-gray-800 mb-2">Real-world example:</h4>
-                <p className="text-gray-700 mb-4">
-                  Predicting house prices from photos. The neural network learns: Layer 1 detects edges, Layer 2 recognises windows/doors, Layer 3 identifies architectural style, Final layer predicts price.
-                </p>
-
-                <h4 className="font-bold text-gray-800 mb-2">For salary prediction:</h4>
-                <p className="text-gray-700">
-                  Can learn that "5 years experience + ML specialisation + Bay Area" creates a non-linear jump in salary. Captures interactions that simple regression misses.
-                </p>
-              </div>
-
-              <div className="h-full flex flex-col justify-between">
-                <div>
-                  <h4 className="font-bold text-gray-800 mb-2">Why it's powerful:</h4>
-                  <ul className="text-gray-700 space-y-2 mb-4">
-                    <li>&bull; Learns feature combinations automatically</li>
-                    <li>&bull; Finds hidden patterns humans don't notice</li>
-                    <li>&bull; Works with messy, high-dimensional data</li>
-                    <li>&bull; Can improve with more data</li>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="bg-white rounded-lg p-4 h-full">
+                  <h4 className="font-semibold text-gray-800 mb-2">Individual Factors:</h4>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>&bull; Negotiation skills</li>
+                    <li>&bull; Education level (BSc vs MSc vs PhD)</li>
+                    <li>&bull; Specialisation (ML engineer vs web dev)</li>
+                    <li>&bull; Performance and productivity</li>
                   </ul>
                 </div>
+                <div className="bg-white rounded-lg p-4 h-full">
+                  <h4 className="font-semibold text-gray-800 mb-2">External Factors:</h4>
+                  <ul className="text-sm text-gray-700 space-y-1">
+                    <li>&bull; Company size (startup vs FAANG)</li>
+                    <li>&bull; Geographic location</li>
+                    <li>&bull; Market timing (hired in boom vs recession)</li>
+                    <li>&bull; Industry (finance vs non-profit)</li>
+                  </ul>
+                </div>
+              </div>
+              <div className="mt-4 bg-blue-100 border-l-4 border-blue-500 p-3 rounded">
+                <p className="text-sm text-blue-900">
+                  <strong>This is why we need regression:</strong> We can't predict exact salaries, but we can predict
+                  the <em>trend</em> and understand the general relationship. The model finds the signal through the
+                  noise.
+                </p>
+              </div>
+            </div>
 
-                <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded mt-auto">
-                  <p className="text-sm text-yellow-900">
-                    <strong>Trade-off:</strong> Needs 10,000+ examples to work well. Ridge/Lasso work fine with 100 examples.
+            {/* Ridge & Lasso explanation */}
+            <div className="mt-6 grid md:grid-cols-2 gap-6">
+              <div
+                  className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-6 h-full flex flex-col">
+                <h3 className="text-xl font-bold text-purple-700 mb-3">Ridge Regression</h3>
+                <p className="text-gray-700 mb-3">
+                  Imagine predicting salary with 50 factors: experience, education, GitHub commits, interview score,
+                  previous salary, etc.
+                </p>
+                <div className="bg-white rounded-lg p-4 mb-3 flex-grow">
+                  <p className="text-sm text-gray-600">Ridge says: "Keep all 50 factors, but don't let any one dominate
+                    too much"</p>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  <strong>Effect:</strong> Prevents overfitting to quirks in your data. All factors contribute a little,
+                  nothing goes crazy.
+                </p>
+                <p className="text-purple-600 text-sm mt-2 font-semibold">
+                  Real example: Predicting salary with experience, education, skills, location, company size, and 45
+                  other factors
+                </p>
+              </div>
+
+              <div
+                  className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl shadow-lg p-6 h-full flex flex-col">
+                <h3 className="text-xl font-bold text-green-700 mb-3">Lasso Regression</h3>
+                <p className="text-gray-700 mb-3">
+                  Same 50 factors, but Lasso is ruthless: it eliminates the weak ones entirely.
+                </p>
+                <div className="bg-white rounded-lg p-4 mb-3 flex-grow">
+                  <p className="text-sm text-gray-600">Lasso says: "Only 8 factors actually matter. The other 42?
+                    Irrelevant. Gone."</p>
+                </div>
+                <p className="text-gray-700 text-sm">
+                  <strong>Effect:</strong> Automatic feature selection. You discover that only experience, education,
+                  location, and specialisation really drive salary.
+                </p>
+                <p className="text-green-600 text-sm mt-2 font-semibold">
+                  Real example: Discovers that favourite programming language, coffee preference, and desk setup don't
+                  predict salary
+                </p>
+              </div>
+            </div>
+
+            {/* Neural network deep dive */}
+            <div className="mt-6 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-lg p-6">
+              <h3 className="text-2xl font-bold text-indigo-700 mb-4">Neural Network Regression Explained</h3>
+
+
+              [Image of neural network architecture diagram]
+
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="h-full">
+                  <h4 className="font-bold text-gray-800 mb-2">Real-world example:</h4>
+                  <p className="text-gray-700 mb-4">
+                    Predicting house prices from photos. The neural network learns: Layer 1 detects edges, Layer 2
+                    recognises windows/doors, Layer 3 identifies architectural style, Final layer predicts price.
                   </p>
+
+                  <h4 className="font-bold text-gray-800 mb-2">For salary prediction:</h4>
+                  <p className="text-gray-700">
+                    Can learn that "5 years experience + ML specialisation + Bay Area" creates a non-linear jump in
+                    salary. Captures interactions that simple regression misses.
+                  </p>
+                </div>
+
+                <div className="h-full flex flex-col justify-between">
+                  <div>
+                    <h4 className="font-bold text-gray-800 mb-2">Why it's powerful:</h4>
+                    <ul className="text-gray-700 space-y-2 mb-4">
+                      <li>&bull; Learns feature combinations automatically</li>
+                      <li>&bull; Finds hidden patterns humans don't notice</li>
+                      <li>&bull; Works with messy, high-dimensional data</li>
+                      <li>&bull; Can improve with more data</li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-yellow-100 border-l-4 border-yellow-500 p-3 rounded mt-auto">
+                    <p className="text-sm text-yellow-900">
+                      <strong>Trade-off:</strong> Needs 10,000+ examples to work well. Ridge/Lasso work fine with 100
+                      examples.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Footer Copyright */}
-        <div className="mt-12 text-center pb-8">
-          <div className="border-t border-gray-300 pt-6">
+          {/* Footer Copyright */}
+          <div className="mt-12 text-center pb-8">
+            <div className="border-t border-gray-300 pt-6">
             <p className="text-gray-600 text-sm">
               &copy; {new Date().getFullYear()} <span className="font-semibold">Ricki Angel</span> | <span className="font-semibold text-indigo-600">Tech Angel X</span>
             </p>

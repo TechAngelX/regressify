@@ -122,7 +122,27 @@ export const calculateModelFits = (rawData) => {
     };
 };
 
-// 3. TEXT CONTENT
+// 3. GENERATE EDUCATIONAL MINI-DATA
+export const generateFittingExamples = () => {
+    // A small, fixed dataset for demonstration
+    const data = [];
+    for (let x = 0; x <= 10; x++) {
+        const curve = 50 + 10 * x - 0.8 * x * x; // The "Truth"
+        const noise = (Math.random() - 0.5) * 20;
+        const actual = curve + noise;
+
+        data.push({
+            x,
+            actual,
+            underfit: 50 + 2 * x, // Too simple (Linear)
+            optimal: curve,       // Just right (The signal without noise)
+            overfit: actual       // Too complex (Memorizing the noise)
+        });
+    }
+    return data;
+};
+
+// 4. MODEL DESCRIPTIONS
 export const descriptions = {
     linear: {
         title: 'Linear Regression',
@@ -211,5 +231,27 @@ export const descriptions = {
         visualPattern: 'A smooth but wavy curve. It follows the trend but captures subtle oscillations and shifts that others miss.',
         pros: ['Unbeatable on complex tasks', 'Learns hidden features', 'Gets smarter with more data'],
         cons: ['Needs thousands of examples', 'Total black box', 'Can overthink it (overfit) if you aren\'t careful']
+    }
+};
+
+// 5. EDUCATIONAL SCENARIOS (Expanded Analogies)
+export const fittingScenarios = {
+    underfit: {
+        title: "Underfitting (High Bias)",
+        desc: "The model is too lazy. It assumes a simple rule (a straight line) even when the data is clearly complex and curved. It ignores the evidence.",
+        analogy: "The Lazy Student: They didn't read the book. They walk into the exam and answer 'C' for every single question. They fail the practice test (Training) AND the real exam (Testing).",
+        clothing: "The 'One-Size-Fits-All' Poncho: It covers everyone, but it fits nobody well. It's too loose for the small data points and too tight for the big ones."
+    },
+    optimal: {
+        title: "Optimal Fit (Goldilocks)",
+        desc: "Just right. The model is smart enough to find the general curve (the signal) but wise enough to ignore the random bumps (the noise).",
+        analogy: "The Smart Student: They studied the *concepts*, not just the examples. When they see a new question they haven't seen before, they can apply the logic to solve it.",
+        clothing: "The Tailored Suit: It fits the shape of the body perfectly, but leaves just enough room to move and breathe comfortably."
+    },
+    overfit: {
+        title: "Overfitting (High Variance)",
+        desc: "The model tries too hard. It connects every single dot, memorising the noise instead of the trend. It gets 100% on training data but fails on new data.",
+        analogy: "The Cheating Student: They memorised the answer key ('A, B, D, A') without understanding the questions. If the teacher changes the order of the questions (New Data), they fail completely.",
+        clothing: "The Spray-On Paint: It fits the body 100% perfectly right now. But if the person eats a sandwich or tries to walk (New Data), the outfit cracks and breaks immediately."
     }
 };
