@@ -178,39 +178,79 @@ function App() {
             </ResponsiveContainer>
           </div>
 
-          {/* === INTERACTIVE SECTION 1: MANUAL TUNING SLIDERS (Linear + Manual Only) === */}
+          {/* === 1. MANUAL TUNING SECTION (EXPANDED EXPLANATIONS) === */}
           {activeModel === 'linear' && isManualMode && (
               <div className="bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-6 mb-6 border border-indigo-100 shadow-sm animate-fade-in">
                 <div className="flex flex-col md:flex-row gap-8 items-start">
-                  <div className="md:w-1/3">
-                    <h3 className="text-lg font-bold text-indigo-900 mb-2">Adjusting Weights & Bias</h3>
-                    <p className="text-sm text-indigo-800 mb-3">Machine learning is just finding the best settings for these two sliders automatically.</p>
-                    <ul className="text-xs text-indigo-700 space-y-2">
-                      <li className="flex gap-2"><span className="font-mono bg-white px-1 rounded border border-indigo-200">w</span><span><b>Weight (Slope):</b> The "Gas Pedal". How fast does salary grow per year?</span></li>
-                      <li className="flex gap-2"><span className="font-mono bg-white px-1 rounded border border-indigo-200">b</span><span><b>Bias (Intercept):</b> The "Starting Line". What is the base salary at 0 years?</span></li>
-                    </ul>
+
+                  {/* EDUCATIONAL TEXT SIDE */}
+                  <div className="md:w-5/12 space-y-4">
+                    <h3 className="text-lg font-bold text-indigo-900 border-b border-indigo-200 pb-2">The Math Behind the Line</h3>
+
+                    {/* Weight Explanation */}
+                    <div className="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-mono bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-sm font-bold">w</span>
+                        <span className="text-indigo-900 font-bold text-sm">Weight / Slope</span>
+                      </div>
+                      <p className="text-sm text-gray-700 font-medium mb-1">"The Gas Pedal"</p>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        Controls the steepness. In salary terms, this is your <strong>annual raise</strong>. <br/>
+                        <span className="italic text-indigo-600 mt-1 block">Higher weight = Faster career growth.</span>
+                      
+                      </p>
+                    </div>
+
+                    {/* Bias Explanation */}
+                    <div className="bg-white p-4 rounded-lg border border-indigo-100 shadow-sm">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="font-mono bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-sm font-bold">b</span>
+                        <span className="text-indigo-900 font-bold text-sm">Bias / Intercept</span>
+                      </div>
+                      <p className="text-sm text-gray-700 font-medium mb-1">"The Starting Line"</p>
+                      <p className="text-xs text-gray-600 leading-relaxed">
+                        Shifts the line up or down. This represents the <strong>base salary</strong> for a Junior with 0 years experience. <br/>
+                        <span className="italic text-indigo-600 mt-1 block">Higher bias = Higher starting salary.</span>
+                      </p>
+                    </div>
                   </div>
-                  <div className="md:w-2/3 w-full space-y-6">
+
+                  {/* SLIDERS SIDE */}
+                  <div className="md:w-7/12 w-full space-y-6 pt-2">
+                    <div className="bg-indigo-900 text-white text-center py-3 rounded-lg font-mono text-sm shadow-inner mb-4">
+                      y = <span className="text-yellow-400 font-bold">{manualSlope}</span>x + <span className="text-green-400 font-bold">{manualIntercept}</span>
+                      <div className="text-xs text-indigo-300 mt-1">Salary = (Raise × Years) + Base</div>
+                    </div>
+
                     <div>
                       <div className="flex justify-between mb-1">
-                        <label className="text-sm font-bold text-gray-700">Weight (w) / Slope</label>
-                        <span className="font-mono text-blue-600 font-bold">{manualSlope}</span>
+                        <label className="text-sm font-bold text-gray-700">Weight / Slope (w)</label>
+                        <span className="font-mono text-blue-600 font-bold text-lg">{manualSlope}</span>
                       </div>
                       <input type="range" min="0" max="10" step="0.1" value={manualSlope} onChange={(e) => setManualSlope(parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                      <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                        <span>0 (Flat)</span>
+                        <span>10 (Steep)</span>
+                      </div>
                     </div>
+
                     <div>
                       <div className="flex justify-between mb-1">
-                        <label className="text-sm font-bold text-gray-700">Bias (b) / Y-Intercept</label>
-                        <span className="font-mono text-blue-600 font-bold">{manualIntercept}</span>
+                        <label className="text-sm font-bold text-gray-700">Bias / Intercept (b)</label>
+                        <span className="font-mono text-blue-600 font-bold text-lg">{manualIntercept}</span>
                       </div>
                       <input type="range" min="20" max="100" step="1" value={manualIntercept} onChange={(e) => setManualIntercept(parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                      <div className="flex justify-between text-[10px] text-gray-400 mt-1">
+                        <span>£20k (Low Base)</span>
+                        <span>£100k (High Base)</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
           )}
 
-          {/* === INTERACTIVE SECTION 2: STATIC PARAMETER DASHBOARD (Auto Mode) === */}
+          {/* === 2. STATIC PARAMETER DASHBOARD (Visible when NOT manual) === */}
           {!isManualMode && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {models[activeModel].parameters.map((param, index) => (
@@ -291,8 +331,10 @@ function App() {
               <MiniChart data={fittingData} lineKey="overfit" color="#3b82f6" title="Overfitting (High Variance)" desc="The model is obsessed. It memorizes the training data perfectly—including the mistakes." analogy="The Obsessive Robot. You train it with bananas that happen to have 'Chiquita' stickers. It learns: 'It is ONLY a banana if it has a sticker.' When you hand it a banana without a sticker, it fails." />
             </div>
             <p className="text-gray-700 my-3 text-center max-w-2xl mx-auto text-sm">
-              The goal of Machine Learning is to find the sweet spot: a model complex enough to capture the true underlying pattern (the signal), yet simple enough to ignore random accidents (noise).
-            </p>
+              The goal of Machine Learning is to find the sweet spot: a model complex enough to capture the true
+              underlying pattern (the signal), yet simple enough to ignore random accidents (noise). This
+              often means accepting a small loss in training accuracy in exchange for better reliability and performance
+              on new, unseen data.            </p>
           </div>
 
           {/* EDUCATIONAL 2: SCATTER EXPLANATION (Full Width) */}
