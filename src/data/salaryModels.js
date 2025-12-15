@@ -111,42 +111,87 @@ export const calculateModelFits = (rawData) => {
     }));
 
     return {
-        linear: { data: linearFit, name: 'Linear Regression', color: '#3b82f6' },
-        polynomial: { data: polynomialFit, name: 'Polynomial Regression', color: '#10b981' },
-        tree: { data: decisionTreeFit, name: 'Decision Tree', color: '#f59e0b' },
-        forest: { data: randomForestFit, name: 'Random Forest', color: '#059669' },
-        boosting: { data: boostingFit, name: 'Gradient Boosting', color: '#be123c' },
-        svm: { data: svmFit, name: 'SVM', color: '#ec4899' },
-        knn: { data: knnFit, name: 'k-NN (k=3)', color: '#ea580c' },
-        neural: { data: neuralNetFit, name: 'Neural Network', color: '#8b5cf6' }
+        linear: {
+            data: linearFit,
+            name: 'Linear Regression',
+            color: '#3b82f6',
+            parameters: [
+                { symbol: 'w', name: 'Weight / Slope', value: '5.0', context: 'Raise per year (£5k)' },
+                { symbol: 'b', name: 'Bias / Intercept', value: '45.0', context: 'Starting base salary (£45k)' }
+            ]
+        },
+        polynomial: {
+            data: polynomialFit,
+            name: 'Polynomial Regression',
+            color: '#10b981',
+            parameters: [
+                { symbol: 'w₁', name: 'Linear Term', value: '15.0', context: 'Initial rapid growth rate' },
+                { symbol: 'w₂', name: 'Squared Term', value: '-0.3', context: 'The "plateau" effect (negative curve)' },
+                { symbol: 'b', name: 'Bias', value: '45.0', context: 'Starting base salary' }
+            ]
+        },
+        tree: {
+            data: decisionTreeFit,
+            name: 'Decision Tree',
+            color: '#f59e0b',
+            parameters: [
+                { symbol: 'd', name: 'Depth', value: '5', context: 'Max "questions" asked' },
+                { symbol: 'n', name: 'Leaves', value: '5', context: 'Distinct salary bands' }
+            ]
+        },
+        forest: {
+            data: randomForestFit,
+            name: 'Random Forest',
+            color: '#059669',
+            parameters: [
+                { symbol: 'N', name: 'Trees', value: '3', context: 'Number of experts consulted' },
+                { symbol: 'μ', name: 'Aggregation', value: 'Mean', context: 'Averaging the predictions' }
+            ]
+        },
+        boosting: {
+            data: boostingFit,
+            name: 'Gradient Boosting',
+            color: '#be123c',
+            parameters: [
+                { symbol: 'η', name: 'Learning Rate', value: '0.1', context: 'Size of correction steps' },
+                { symbol: 'i', name: 'Iterations', value: '3', context: 'Number of correction rounds' }
+            ]
+        },
+        svm: {
+            data: svmFit,
+            name: 'SVM',
+            color: '#ec4899',
+            parameters: [
+                { symbol: 'K', name: 'Kernel', value: 'RBF', context: 'Curved boundary (Radial Basis)' },
+                { symbol: 'ε', name: 'Epsilon', value: '0.1', context: 'Allowed error margin (The Tube)' }
+            ]
+        },
+        knn: {
+            data: knnFit,
+            name: 'k-NN (k=3)',
+            color: '#ea580c',
+            parameters: [
+                { symbol: 'k', name: 'Neighbors', value: '3', context: 'Similar employees compared' },
+                { symbol: 'd', name: 'Distance', value: 'Euclidean', context: 'Similarity metric' }
+            ]
+        },
+        neural: {
+            data: neuralNetFit,
+            name: 'Neural Network',
+            color: '#8b5cf6',
+            parameters: [
+                { symbol: 'h', name: 'Hidden Layers', value: '2', context: 'Depth of reasoning' },
+                { symbol: 'σ', name: 'Activation', value: 'ReLU', context: 'Non-linear thinking' }
+            ]
+        }
     };
 };
 
-// 3. GENERATE EDUCATIONAL MINI-DATA
-export const generateFittingExamples = () => {
-    // A small, fixed dataset for demonstration
-    const data = [];
-    for (let x = 0; x <= 10; x++) {
-        const curve = 50 + 10 * x - 0.8 * x * x; // The "Truth"
-        const noise = (Math.random() - 0.5) * 20;
-        const actual = curve + noise;
-
-        data.push({
-            x,
-            actual,
-            underfit: 50 + 2 * x, // Too simple (Linear)
-            optimal: curve,       // Just right (The signal without noise)
-            overfit: actual       // Too complex (Memorizing the noise)
-        });
-    }
-    return data;
-};
-
-// 4. MODEL DESCRIPTIONS
+// 3. TEXT CONTENT
 export const descriptions = {
     linear: {
         title: 'Linear Regression',
-        math: 'y = mx + c',
+        math: 'y = wx + b',
         desc: 'The simplest approach. It assumes salary is a straight line upwards: £5k extra for every year you work. It ignores the fact that growth usually slows down later in your career.',
         when: 'Great for simple trends, but life is rarely a straight line.',
         howItWorks: 'It draws a straight line (y = mx + b) right through the middle of the mess. It looks at the scattered dots (real people) and finds the average path. If you have 5 years experience, it predicts £70k, ignoring that some people make £60k and others £80k.',
@@ -157,7 +202,7 @@ export const descriptions = {
     },
     polynomial: {
         title: 'Polynomial Regression',
-        math: 'y = ax² + bx + c',
+        math: 'y = w₁x + w₂x² + b',
         desc: 'Now we\'re adding curves. This model understands that you learn fast in the beginning (salary spikes) but eventually hit a ceiling (salary plateau).',
         when: 'When the trend clearly isn\'t straight (e.g. rapid growth then slowing down).',
         howItWorks: 'Instead of just x (years), we use x² or x³. This lets the line bend. It fits the "inverted U" shape of a typical career path much better than a straight line.',
@@ -168,7 +213,7 @@ export const descriptions = {
     },
     tree: {
         title: 'Decision Tree Regression',
-        math: 'if (x < a) then y = b',
+        math: 'if x < a then y = b',
         desc: 'Think of this like an HR flowchart. It creates strict salary bands based on experience brackets: Junior, Mid, Senior, Lead.',
         when: 'When you need clear-cut rules that humans can easily follow.',
         howItWorks: 'It asks questions: "Less than 2 years? Pay £50k. Less than 5? Pay £75k." It doesn\'t care about the specific year, just which bucket you fall into.',
@@ -179,7 +224,7 @@ export const descriptions = {
     },
     forest: {
         title: 'Random Forest',
-        math: 'avg(Tree₁, Tree₂, ...)',
+        math: 'Σ Tree_i / N',
         desc: 'This is just a team of Decision Trees working together. We ask 100 different trees to guess the salary, then take the average. It smooths out the edges.',
         when: 'When accuracy matters more than having a simple formula.',
         howItWorks: 'One tree might obsess over early career, another over late career. By averaging them (the "ensemble"), we get rid of the biases and get a solid prediction.',
@@ -190,7 +235,7 @@ export const descriptions = {
     },
     boosting: {
         title: 'Gradient Boosting (e.g. XGBoost)',
-        math: 'y = Tree₁ + ε₁ + ε₂',
+        math: 'y = F(x) + h(x)',
         desc: 'The perfectionist. Instead of averaging random trees (like a Forest), it builds trees one by one, where each new tree tries to fix the mistakes of the previous one.',
         when: 'When you want to win a competition. It is the gold standard for tabular data.',
         howItWorks: 'It looks at the data points it got wrong and focuses purely on them. "I missed the Rockstar Junior? Okay, I\'ll build a specific rule just for them." It iteratively reduces error.',
@@ -201,7 +246,7 @@ export const descriptions = {
     },
     svm: {
         title: 'Support Vector Machine (SVM)',
-        math: 'K(x, x\')',
+        math: 'K(x_i, x_j)',
         desc: 'Imagine trying to wrap a wide rubber band around your data points. SVM tries to find the "tube" that fits the most points comfortably.',
         when: 'When you have lots of different factors (dimensions) and need a robust curve.',
         howItWorks: 'It uses a "kernel trick" to project the data into higher dimensions to find the best fit. It cares more about the general flow than individual outliers.',
@@ -212,7 +257,7 @@ export const descriptions = {
     },
     knn: {
         title: 'k-Nearest Neighbors (k-NN)',
-        math: 'avg(y₁, y₂, y₃)',
+        math: 'avg(y_near)',
         desc: 'The copycat method. "Show me the 3 people most similar to this candidate, and I\'ll guess their salary based on them."',
         when: 'When local similarity matters more than a global trend.',
         howItWorks: 'If you have 7 years experience, it ignores the Juniors and Principals. It finds the nearest existing employees (e.g. 6.8, 7.0, 7.2 years) and averages their pay.',
@@ -223,7 +268,7 @@ export const descriptions = {
     },
     neural: {
         title: 'Neural Network Regression',
-        math: 'f(W₂f(W₁x))',
+        math: 'f(W_2 σ(W_1 x))',
         desc: 'The brain approach. It doesn\'t just treat inputs as separate numbers; it passes them through layers of "neurons" to find hidden connections. For example, it might learn that experience usually raises pay, but specific combinations—like "Senior" plus "AI" during a "Market Boom"—create a massive salary spike that a simple line graph would completely miss.',
         when: 'When you have massive data and the relationship is too complex for simple math.',
         howItWorks: 'Data goes in, flows through layers of calculations, and salary comes out. It learns its own rules. It can spot things we miss, like "Salary dips at year 5 then spikes at year 7".',
@@ -234,24 +279,27 @@ export const descriptions = {
     }
 };
 
-// 5. EDUCATIONAL SCENARIOS (Expanded Analogies)
-export const fittingScenarios = {
-    underfit: {
-        title: "Underfitting (High Bias)",
-        desc: "The model is too lazy. It assumes a simple rule (a straight line) even when the data is clearly complex and curved. It ignores the evidence.",
-        analogy: "The Lazy Student: They didn't read the book. They walk into the exam and answer 'C' for every single question. They fail the practice test (Training) AND the real exam (Testing).",
-        clothing: "The 'One-Size-Fits-All' Poncho: It covers everyone, but it fits nobody well. It's too loose for the small data points and too tight for the big ones."
-    },
-    optimal: {
-        title: "Optimal Fit (Goldilocks)",
-        desc: "Just right. The model is smart enough to find the general curve (the signal) but wise enough to ignore the random bumps (the noise).",
-        analogy: "The Smart Student: They studied the *concepts*, not just the examples. When they see a new question they haven't seen before, they can apply the logic to solve it.",
-        clothing: "The Tailored Suit: It fits the shape of the body perfectly, but leaves just enough room to move and breathe comfortably."
-    },
-    overfit: {
-        title: "Overfitting (High Variance)",
-        desc: "The model tries too hard. It connects every single dot, memorising the noise instead of the trend. It gets 100% on training data but fails on new data.",
-        analogy: "The Cheating Student: They memorised the answer key ('A, B, D, A') without understanding the questions. If the teacher changes the order of the questions (New Data), they fail completely.",
-        clothing: "The Spray-On Paint: It fits the body 100% perfectly right now. But if the person eats a sandwich or tries to walk (New Data), the outfit cracks and breaks immediately."
+// 4. HELPER FOR EDUCATIONAL CHARTS (NEW)
+export const generateFittingExamples = () => {
+    const data = [];
+    for (let x = 0; x <= 10; x++) {
+        // The Signal (True Pattern): A simple quadratic curve
+        const signal = 50 + 20 * x - 1.5 * x * x;
+
+        // The Noise: Random fluctuation
+        const noise = (Math.random() - 0.5) * 40;
+        const actual = signal + noise;
+
+        data.push({
+            x,
+            actual,
+            // 1. Underfit: A lazy straight line that misses the curve
+            underfit: 60 + 5 * x,
+            // 2. Optimal: The true signal (without noise)
+            optimal: signal,
+            // 3. Overfit: Connects the dots (includes the noise)
+            overfit: actual
+        });
     }
+    return data;
 };
