@@ -162,8 +162,34 @@ function App() {
                 <XAxis dataKey="experience" label={{ value: 'Years of Experience', position: 'insideBottom', offset: -10 }} stroke="#6b7280" type="number" domain={[0, 20]} />
                 <YAxis label={{ value: 'Salary (£1000s)', angle: -90, position: 'insideLeft', offset: 0 }} stroke="#6b7280" domain={[20, 160]} />
                 <Tooltip content={<CustomTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 2 }} />
-                <Scatter dataKey="actual" data={normalPoints} fill="#94a3b8" name="Normal Employees" shape="circle" />
-                <Scatter dataKey="actual" data={outlierPoints} fill="#ef4444" name="Outliers" shape="circle" r={6} />
+
+                {/* REFACTORED ANIMATION SETTINGS:
+                  We use a slower animationDuration (1200ms) and 'ease-in-out' easing.
+                  This ensures that when handleRegenerate updates the data, the dots 
+                  slide vertically to their new positions and the line wiggles smoothly,
+                  rather than snapping instantly.
+                */}
+                <Scatter
+                    dataKey="actual"
+                    data={normalPoints}
+                    fill="#94a3b8"
+                    name="Normal Employees"
+                    shape="circle"
+                    isAnimationActive={true}
+                    animationDuration={1200}
+                    animationEasing="ease-in-out"
+                />
+                <Scatter
+                    dataKey="actual"
+                    data={outlierPoints}
+                    fill="#ef4444"
+                    name="Outliers"
+                    shape="circle"
+                    r={6}
+                    isAnimationActive={true}
+                    animationDuration={1200}
+                    animationEasing="ease-in-out"
+                />
                 <Line
                     data={chartData}
                     type="monotone"
@@ -172,7 +198,9 @@ function App() {
                     strokeWidth={3}
                     dot={false}
                     name="Prediction Model"
-                    animationDuration={isManualMode ? 0 : 1000}
+                    isAnimationActive={true}
+                    animationDuration={isManualMode ? 0 : 1200}
+                    animationEasing="ease-in-out"
                 />
               </ComposedChart>
             </ResponsiveContainer>
@@ -196,8 +224,9 @@ function App() {
                       <p className="text-sm text-gray-700 font-medium mb-1">"The Gas Pedal"</p>
                       <p className="text-xs text-gray-600 leading-relaxed">
                         Controls the steepness. In salary terms, this is your <strong>annual raise</strong>. <br/>
-                        <span className="italic text-indigo-600 mt-1 block">Higher weight = Faster career growth.</span>
-                      
+                        {/* CORRECTED TERMINOLOGY: salary growth instead of career growth */}
+                        <span className="italic text-indigo-600 mt-1 block">Higher weight = Faster salary growth.</span>
+
                       </p>
                     </div>
 
