@@ -23,6 +23,7 @@ export const generateClassificationData = () => {
 export const classificationModels = {
   logistic: {
     name: 'Logistic Regression',
+    icon: '📊',
     color: '#3b82f6',
     parameters: [
       { symbol: 'σ', name: 'Sigmoid Function', value: '1/(1+e⁻ˣ)', context: 'Squashes output to 0-1 probability' },
@@ -31,6 +32,7 @@ export const classificationModels = {
   },
   decisionTree: {
     name: 'Decision Tree',
+    icon: '🌳',
     color: '#f59e0b',
     parameters: [
       { symbol: 'd', name: 'Max Depth', value: '4', context: 'How many questions to ask' },
@@ -39,6 +41,7 @@ export const classificationModels = {
   },
   randomForest: {
     name: 'Random Forest',
+    icon: '🌲',
     color: '#059669',
     parameters: [
       { symbol: 'N', name: 'Trees', value: '100', context: 'Number of voters in the committee' },
@@ -47,6 +50,7 @@ export const classificationModels = {
   },
   svm: {
     name: 'SVM Classifier',
+    icon: '🎯',
     color: '#ec4899',
     parameters: [
       { symbol: 'C', name: 'Regularization', value: '1.0', context: 'Tolerance for misclassification' },
@@ -55,6 +59,7 @@ export const classificationModels = {
   },
   knn: {
     name: 'k-NN Classifier',
+    icon: '👥',
     color: '#ea580c',
     parameters: [
       { symbol: 'k', name: 'Neighbors', value: '5', context: 'How many neighbors vote' },
@@ -63,6 +68,7 @@ export const classificationModels = {
   },
   naiveBayes: {
     name: 'Naive Bayes',
+    icon: '🧠',
     color: '#8b5cf6',
     parameters: [
       { symbol: 'P', name: 'Prior', value: 'P(Class)', context: 'Base rate of each class' },

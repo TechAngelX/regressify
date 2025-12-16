@@ -114,6 +114,7 @@ export const calculateModelFits = (rawData) => {
         linear: {
             data: linearFit,
             name: 'Linear Regression',
+            icon: '📏',
             color: '#3b82f6',
             parameters: [
                 { symbol: 'w', name: 'Weight / Slope', value: '5.0', context: 'Raise per year (£5k)' },
@@ -122,7 +123,8 @@ export const calculateModelFits = (rawData) => {
         },
         polynomial: {
             data: polynomialFit,
-            name: 'Polynomial Regression',
+            name: 'Polynomial',
+            icon: '📈',
             color: '#10b981',
             parameters: [
                 { symbol: 'w₁', name: 'Linear Term', value: '15.0', context: 'Initial rapid growth rate' },
@@ -133,6 +135,7 @@ export const calculateModelFits = (rawData) => {
         tree: {
             data: decisionTreeFit,
             name: 'Decision Tree',
+            icon: '🌳',
             color: '#f59e0b',
             parameters: [
                 { symbol: 'd', name: 'Depth', value: '5', context: 'Max "questions" asked' },
@@ -142,6 +145,7 @@ export const calculateModelFits = (rawData) => {
         forest: {
             data: randomForestFit,
             name: 'Random Forest',
+            icon: '🌲',
             color: '#059669',
             parameters: [
                 { symbol: 'N', name: 'Trees', value: '3', context: 'Number of experts consulted' },
@@ -151,6 +155,7 @@ export const calculateModelFits = (rawData) => {
         boosting: {
             data: boostingFit,
             name: 'Gradient Boosting',
+            icon: '🚀',
             color: '#be123c',
             parameters: [
                 { symbol: 'η', name: 'Learning Rate', value: '0.1', context: 'Size of correction steps' },
@@ -160,6 +165,7 @@ export const calculateModelFits = (rawData) => {
         svm: {
             data: svmFit,
             name: 'SVM',
+            icon: '🎯',
             color: '#ec4899',
             parameters: [
                 { symbol: 'K', name: 'Kernel', value: 'RBF', context: 'Curved boundary (Radial Basis)' },
@@ -169,6 +175,7 @@ export const calculateModelFits = (rawData) => {
         knn: {
             data: knnFit,
             name: 'k-NN (k=3)',
+            icon: '👥',
             color: '#ea580c',
             parameters: [
                 { symbol: 'k', name: 'Neighbors', value: '3', context: 'Similar employees compared' },
@@ -178,6 +185,7 @@ export const calculateModelFits = (rawData) => {
         neural: {
             data: neuralNetFit,
             name: 'Neural Network',
+            icon: '🧠',
             color: '#8b5cf6',
             parameters: [
                 { symbol: 'h', name: 'Hidden Layers', value: '2', context: 'Depth of reasoning' },

@@ -35,13 +35,14 @@ const ClassificationTab = () => {
           <button
             key={key}
             onClick={() => setActiveModel(key)}
-            className={`w-full py-3 rounded-lg font-semibold transition-all shadow-md ${
+            className={`w-full py-4 rounded-lg font-semibold transition-all shadow-md flex flex-col items-center gap-2 ${
               activeModel === key
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105 transform'
                 : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
-            {model.name}
+            <span className="text-2xl">{model.icon}</span>
+            <span className="text-xs">{model.name}</span>
           </button>
         ))}
       </div>
