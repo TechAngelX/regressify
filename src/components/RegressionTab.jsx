@@ -2,18 +2,110 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generateData, calculateModelFits, descriptions, generateFittingExamples } from '../data/salaryModels';
-import { RegressionTooltip } from './shared/Tooltips';
 import MiniChart from './shared/MiniChart';
 import ParameterCard from './shared/ParameterCard';
 import ModelDescription from './shared/ModelDescription';
 
+// Preset scenarios
+const presetScenarios = {
+  salary: {
+    name: 'Salary Prediction',
+    icon: '💰',
+    xLabel: 'Years of Experience',
+    yLabel: 'Salary (£1000s)',
+    xUnit: 'years',
+    yUnit: '£k',
+    outlier1: { year: 2, label: "The Rockstar Junior: Hired by a crypto startup. Knows Rust & AI. Way above market." },
+    outlier2: { year: 16, label: "The Stagnant Senior: Same legacy bank for 15 years. COBOL specialist. Below inflation." }
+  },
+  housePrices: {
+    name: 'House Prices',
+    icon: '🏠',
+    xLabel: 'Square Metres',
+    yLabel: 'Price (£1000s)',
+    xUnit: 'm²',
+    yUnit: '£k',
+    outlier1: { year: 2, label: "The Hidden Gem: Tiny flat in Zone 1 London. Location beats size." },
+    outlier2: { year: 16, label: "The Rural Mansion: Huge but remote. No demand, low price." }
+  },
+  carMileage: {
+    name: 'Car Value',
+    icon: '🚗',
+    xLabel: 'Mileage (10k miles)',
+    yLabel: 'Resale Value (£1000s)',
+    xUnit: '0k mi',
+    yUnit: '£k',
+    outlier1: { year: 2, label: "Classic Collector: Low mileage vintage car. Appreciating asset!" },
+    outlier2: { year: 16, label: "The Uber Warrior: 160k miles of city driving. Engine worn out." }
+  },
+  plantGrowth: {
+    name: 'Plant Growth',
+    icon: '🌱',
+    xLabel: 'Weeks Since Planting',
+    yLabel: 'Height (cm)',
+    xUnit: 'weeks',
+    yUnit: 'cm',
+    outlier1: { year: 2, label: "Miracle Grow: Got extra fertiliser. Growing like crazy!" },
+    outlier2: { year: 16, label: "The Shaded One: Blocked by a tree. Stunted growth." }
+  },
+  custom: {
+    name: 'Custom',
+    icon: '✏️',
+    xLabel: 'X Value',
+    yLabel: 'Y Value',
+    xUnit: '',
+    yUnit: '',
+    outlier1: { year: 2, label: "Outlier: Unusually high value for this input." },
+    outlier2: { year: 16, label: "Outlier: Unusually low value for this input." }
+  }
+};
+
 const RegressionTab = () => {
   const [activeModel, setActiveModel] = useState('linear');
+  const [activeScenario, setActiveScenario] = useState('salary');
+  const [customX, setCustomX] = useState('X Value');
+  const [customY, setCustomY] = useState('Y Value');
   const [rawData, setRawData] = useState(generateData);
   const [fittingData] = useState(generateFittingExamples);
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualSlope, setManualSlope] = useState(5);
   const [manualIntercept, setManualIntercept] = useState(45);
+
+  // Get current scenario config
+  const scenario = useMemo(() => {
+    const s = presetScenarios[activeScenario];
+    if (activeScenario === 'custom') {
+      return { ...s, xLabel: customX, yLabel: customY };
+    }
+    return s;
+  }, [activeScenario, customX, customY]);
+
+  // Dynamic tooltip that uses scenario labels
+  const DynamicTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const isOutlier = data.isOutlier;
+
+      return (
+        <div className={`p-4 rounded-lg shadow-xl border-2 z-50 ${isOutlier ? 'bg-red-50 border-red-200' : 'bg-white border-slate-100'}`}>
+          <p className="font-bold text-gray-800 mb-1">{scenario.xLabel}: {label}</p>
+          <p className={`${isOutlier ? 'text-red-600 font-bold' : 'text-gray-600'}`}>
+            Actual: {scenario.yUnit}{Math.round(data.actual)}{scenario.yUnit ? '' : ''}
+          </p>
+          <p className="text-indigo-600 font-semibold">
+            Predicted: {scenario.yUnit}{Math.round(data.predicted)}
+          </p>
+          {isOutlier && (
+            <div className="mt-2 pt-2 border-t border-red-200">
+              <p className="text-xs font-bold text-red-800 uppercase tracking-wide">Outlier Detected</p>
+              <p className="text-sm text-red-700 italic mt-1 max-w-[200px]">"{data.label}"</p>
+            </div>
+          )}
+        </div>
+      );
+    }
+    return null;
+  };
 
   const handleRegenerate = () => setRawData(generateData());
 
@@ -38,6 +130,54 @@ const RegressionTab = () => {
 
   return (
     <div className="max-w-6xl mx-auto">
+      {/* SCENARIO PICKER */}
+      <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+        <div className="flex flex-wrap items-center gap-3 mb-3">
+          <span className="text-sm font-bold text-gray-700">What are you predicting?</span>
+          <div className="flex flex-wrap gap-2">
+            {Object.entries(presetScenarios).map(([key, s]) => (
+              <button
+                key={key}
+                onClick={() => setActiveScenario(key)}
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                  activeScenario === key
+                    ? 'bg-indigo-600 text-white shadow-md'
+                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                }`}
+              >
+                <span className="mr-1">{s.icon}</span> {s.name}
+              </button>
+            ))}
+          </div>
+        </div>
+        
+        {/* Custom inputs */}
+        {activeScenario === 'custom' && (
+          <div className="flex flex-wrap gap-4 pt-3 border-t border-gray-100">
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">X-Axis:</label>
+              <input
+                type="text"
+                value={customX}
+                onChange={(e) => setCustomX(e.target.value)}
+                placeholder="e.g. Age, Size, Time..."
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm text-gray-600">Y-Axis:</label>
+              <input
+                type="text"
+                value={customY}
+                onChange={(e) => setCustomY(e.target.value)}
+                placeholder="e.g. Price, Weight, Score..."
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* MODEL SELECTION BUTTONS */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         {Object.entries(models).map(([key, model]) => (
@@ -84,9 +224,9 @@ const RegressionTab = () => {
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-            <XAxis dataKey="experience" label={{ value: 'Years of Experience', position: 'insideBottom', offset: -10 }} stroke="#6b7280" type="number" domain={[0, 20]} />
-            <YAxis label={{ value: 'Salary (£1000s)', angle: -90, position: 'insideLeft', offset: 0 }} stroke="#6b7280" domain={[20, 160]} />
-            <Tooltip content={<RegressionTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 2 }} />
+            <XAxis dataKey="experience" label={{ value: scenario.xLabel, position: 'insideBottom', offset: -10 }} stroke="#6b7280" type="number" domain={[0, 20]} />
+            <YAxis label={{ value: scenario.yLabel, angle: -90, position: 'insideLeft', offset: 0 }} stroke="#6b7280" domain={[20, 160]} />
+            <Tooltip content={<DynamicTooltip />} cursor={{ stroke: '#cbd5e1', strokeWidth: 2 }} />
 
             <Scatter dataKey="actual" data={normalPoints} fill="#94a3b8" name="Normal Employees" shape="circle" isAnimationActive={true} animationDuration={1200} animationEasing="ease-in-out" />
             <Scatter dataKey="actual" data={outlierPoints} fill="#ef4444" name="Outliers" shape="circle" r={6} isAnimationActive={true} animationDuration={1200} animationEasing="ease-in-out" />
