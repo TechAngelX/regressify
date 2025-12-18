@@ -302,151 +302,208 @@ const RegressionTab = () => {
 
         {/* POLYNOMIAL SHAPES */}
         {activeModel === 'polynomial' && (
-            <div className={`rounded-xl shadow-inner p-8 mb-16 h-auto ${isDark ? 'bg-slate-800/50' : 'bg-gradient-to-br from-slate-100 to-slate-200'}`}>
+            <div
+                className={`rounded-xl shadow-inner p-8 mb-16 h-auto ${isDark ? 'bg-slate-800/50' : 'bg-gradient-to-br from-slate-100 to-slate-200'}`}>
               <h3 className={`text-xl font-bold mb-6 text-center ${isDark ? 'text-gray-200' : 'text-slate-700'}`}>
                 Understanding Polynomial Shapes: The Power of x²
               </h3>
+              <p className={`mb-3 text-center ${isDark ? 'text-gray-300' : 'text-gray-700' }`}>  Squaring a number  produces a curved shape. These curves allow us to model real-world patterns such as growth, decline, and natural limits.
+              </p>
+
 
               <div className="grid md:grid-cols-4 gap-6 items-stretch">
 
                 {/* Frown (Sad Smile) Card */}
-                <div className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <MiniChart data={polyShapeData} lineKey="frown" color="#ef4444" title="The 'Sad Smile' (Inverted U)" />
-                  {/* NEW LABEL ADDED HERE */}
+                <div
+                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <MiniChart data={polyShapeData} lineKey="frown" color="#ef4444" title="The 'Sad Smile' (Inverted U)"/>
                   <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
                     Parabola: y = ax² + bx + c, a &lt; 0
                   </div>
                   <div className="mt-2 text-xs flex-grow space-y-4">
+
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-red-300' : 'text-red-700'}`}>Example 1: Healthy strength in human beings.</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                        Example 1: Footballer Performance
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Age (Independent)</li>
-                        <li><strong>Y:</strong> Strength (Dependent)</li>
+                        <li><strong>X:</strong> Age (Years) (Independent)</li>
+                        <li><strong>Y:</strong> Performance Level (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Strength develops from infancy, peaks in adulthood, then gradually declines.
+                        <b>Assumption:</b> Young players develop skills, peak at 27-30,
+                        then decline as speed and stamina drop.
                       </p>
                     </div>
+
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-red-300' : 'text-red-700'}`}>Example 2: Population Density vs. Quality of Life</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-red-300' : 'text-red-700'}`}>
+                        Example 2: Daily Temperature
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Density</li>
-                        <li><strong>Y:</strong> Quality of Life</li>
+                        <li><strong>X:</strong> Daytime (Hours) (Independent)</li>
+                        <li><strong>Y:</strong> Temperature (°C) (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Moderate density is best; extremes are bad.
+                        <b>Assumption:</b> Cold at sunrise, temperature rises steadily,
+                        peaks around 2-3pm, then cools down through evening.
                       </p>
                     </div>
+
                   </div>
-                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-red-400' : 'text-red-600'}`}>“Too much or too little is bad.”</p>
+                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-red-400' : 'text-red-600'}`}>
+                    "Rises to a peak, then falls."
+                  </p>
                 </div>
 
                 {/* Smile (U-Shape) Card */}
-                <div className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <MiniChart data={polyShapeData} lineKey="smile" color="#22c55e" title="The 'Smile' (U-Shape)" />
-                  {/* NEW LABEL ADDED HERE */}
+                <div
+                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <MiniChart data={polyShapeData} lineKey="smile" color="#22c55e" title="The 'Smile' (U-Shape)"/>
                   <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
                     Parabola: y = ax² + bx + c, a &gt; 0
                   </div>
                   <div className="mt-2 text-xs flex-grow space-y-4">
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>Example 1: Driver Age vs. Claims</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                        Example 1: Driver Age vs. Claims
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Age</li>
-                        <li><strong>Y:</strong> Claims</li>
+                        <li><strong>X:</strong> Age (Years) (Independent)</li>
+                        <li><strong>Y:</strong> Claims (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Young & old drivers are high risk.
+                        <b>Assumption:</b> Young drivers (17-25) have high accident rates due to inexperience,
+                        middle-aged (35-55) are safest, then elderly (75+) see claims rise again.
                       </p>
                     </div>
+
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>Example 2: Fertilizer vs. Health</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                        Example 2: Plant Watering
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Amount</li>
-                        <li><strong>Y:</strong> Plant Health</li>
+                        <li><strong>X:</strong> Water given (mL) (Independent)</li>
+                        <li><strong>Y:</strong> Mortality Rate (%) (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Optimal health requires a specific ("Goldilocks") amount.
+                        <b>Assumption:</b> Too little water (50mL) causes drought death,
+                        the right amount (200mL) keeps them healthy, but too much (500mL) drowns roots and causes death.
                       </p>
                     </div>
                   </div>
-                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-green-400' : 'text-green-600'}`}>“Extremes are risky/expensive.”</p>
+                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                    "Extremes are risky."
+                  </p>
                 </div>
 
                 {/* Plateau Card */}
-                <div className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <MiniChart data={polyShapeData} lineKey="plateau" color="#3b82f6" title="The Plateau Effect" />
-                  {/* NEW LABEL ADDED HERE */}
+                <div
+                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <MiniChart data={polyShapeData} lineKey="plateau" color="#3b82f6" title="The Plateau Effect"/>
                   <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
-                    Plateau: y = L
+                    Plateau: y = a·log(x) + b
                   </div>
                   <div className="mt-2 text-xs flex-grow space-y-4">
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Example 1: Learning Time vs. Skill</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                        Example 1: Fire Spreading
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Time</li>
-                        <li><strong>Y:</strong> Skill</li>
+                        <li><strong>X:</strong> Time (Minutes) (Independent)</li>
+                        <li><strong>Y:</strong> Rooms on Fire (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Skill improves fast, then levels off.
+                        <b>Assumption:</b> Fire spreads rapidly through first few rooms (plenty of fuel and oxygen),
+                        but slows down as it runs out of things to burn.
                       </p>
                     </div>
+
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>Example 2: Exercise vs. Results</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-blue-300' : 'text-blue-700'}`}>
+                        Example 2: City Population Growth
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Effort</li>
-                        <li><strong>Y:</strong> Calories</li>
+                        <li><strong>X:</strong> Years (Independent)</li>
+                        <li><strong>Y:</strong> Population (Thousands) (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Body adapts, gains slow down.
+                        <b>Assumption:</b> A new town grows rapidly at first (lots of space, opportunity),
+                        but slows as housing fills up, resources become scarce, and the city reaches capacity.
                       </p>
                     </div>
                   </div>
-                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>“Diminishing returns.”</p>
+                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>
+                    "Diminishing returns."
+                  </p>
                 </div>
 
                 {/* J-Curve (Exponential/Reverse Plateau) Card */}
-                <div className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <MiniChart data={polyShapeData} lineKey="jCurve" color="#f59e0b" title="The J-Curve (Exponential)" />
-                  {/* NEW LABEL ADDED HERE */}
+                <div
+                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <MiniChart data={polyShapeData} lineKey="jCurve" color="#f59e0b"
+                             title="Reverse Plateau (Exponential)"/>
                   <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
                     J-Curve: y = ae<sup>bx</sup>, b &gt; 0
                   </div>
                   <div className="mt-2 text-xs flex-grow space-y-4">
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>Example 1: Viral Content</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                        Example 1: Compound Interest
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Time</li>
-                        <li><strong>Y:</strong> Views</li>
+                        <li><strong>X:</strong> Time (Independent)</li>
+                        <li><strong>Y:</strong> Investment Value (£) (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Slow start, then explosive growth.
+                        <b>Assumption:</b> Investment grows slowly at first, then speeds up over time
+                        as you reinvest dividends—like a snowball rolling downhill getting bigger and faster.
                       </p>
                     </div>
+
                     <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>Example 2: Bacterial Growth</p>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-yellow-300' : 'text-yellow-700'}`}>
+                        Example 2: Viral Video Views
+                      </p>
                       <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Time</li>
-                        <li><strong>Y:</strong> Count</li>
+                        <li><strong>X:</strong> Time (Hours) (Independent)</li>
+                        <li><strong>Y:</strong> Views (Thousands) (Dependent)</li>
+                        <br/>
                       </ul>
                       <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Population doubles at a constant rate.
+                        <b>Assumption:</b> Views start slow, then increase rapidly as the video goes viral.
+                        This is the phenomenon when your YouTube or TikTok "blows up".
                       </p>
                     </div>
+
                   </div>
-                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>“Growth accelerates rapidly.”</p>
+                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>
+                    "Growth accelerates rapidly."
+                  </p>
                 </div>
 
               </div>
             </div>
         )}
-
         {/* EDUCATIONAL SECTIONS */}
-        <div className={`rounded-xl shadow-inner p-6 mb-6 mt-12 ${isDark ? 'bg-slate-800/50' : 'bg-gradient-to-br from-slate-100 to-slate-200'}`}>
-          <h3 className={`text-xl font-bold mb-4 text-center ${isDark ? 'text-gray-200' : 'text-slate-700'}`}>The Goldilocks Problem: Bias vs. Variance</h3>
+        <div
+            className={`rounded-xl shadow-inner p-6 mb-6 mt-12 ${isDark ? 'bg-slate-800/50' : 'bg-gradient-to-br from-slate-100 to-slate-200'}`}>
+          <h3 className={`text-xl font-bold mb-4 text-center ${isDark ? 'text-gray-200' : 'text-slate-700'}`}>The
+            Goldilocks Problem: Bias vs. Variance</h3>
           <div className="grid md:grid-cols-3 gap-4">
-            <MiniChart data={fittingData} lineKey="underfit" color="#ef4444" title="Underfitting (High Bias)" desc="The model is too simple. It ignores the details in your training data." analogy="The Lazy Robot. It looks at data and makes a lazy rule that misses the pattern." />
-            <MiniChart data={fittingData} lineKey="optimal" color="#10b981" title="Optimal Fit" desc="Just right. The model learns the general rules but ignores the random noise." analogy="The Smart Robot. It learns the true pattern and ignores the anomalies." />
+            <MiniChart data={fittingData} lineKey="underfit" color="#ef4444" title="Underfitting (High Bias)"
+                       desc="The model is too simple. It ignores the details in your training data."
+                       analogy="The Lazy Robot. It looks at data and makes a lazy rule that misses the pattern."/>
+            <MiniChart data={fittingData} lineKey="optimal" color="#10b981" title="Optimal Fit"
+                       desc="Just right. The model learns the general rules but ignores the random noise."
+                       analogy="The Smart Robot. It learns the true pattern and ignores the anomalies."/>
             <MiniChart data={fittingData} lineKey="overfit" color="#3b82f6" title="Overfitting (High Variance)" desc="The model is obsessed. It memorises the training data including mistakes." analogy="The Obsessive Robot. It memorises every detail including the noise." />
           </div>
           <p className={`my-3 text-center max-w-2xl mx-auto text-sm ${textMuted}`}>The goal of Machine Learning is to find the sweet spot: a model complex enough to capture the true underlying pattern (the signal), yet simple enough to ignore random accidents (noise).</p>
