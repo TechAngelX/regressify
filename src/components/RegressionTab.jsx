@@ -119,7 +119,7 @@ const RegressionTab = () => {
 
   const handleRegenerate = () => setRawData(generateData());
 
-  const models = useMemo(() => calculateModelFits(rawData), [rawData]);
+  const models = useMemo(() => calculateModelFits(rawData, activeScenario), [rawData, activeScenario]);
 
   const chartData = useMemo(() => {
     if (activeModel === 'linear' && isManualMode) {

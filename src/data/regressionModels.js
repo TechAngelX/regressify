@@ -43,19 +43,46 @@ const OUTLIER_TEMPLATES = {
     }
 };
 
+// HELPER: Dynamic Context Text for Parameters
+const getScenarioContext = (scenario, param, value) => {
+    const contexts = {
+        salary: {
+            w: `This controls how fast salary grows with experience. A weight of ${value} means that, on average, each additional year of experience adds £${value}k to the predicted salary. If this value were larger, the line would rise more steeply.`,
+            b: `This is the model’s starting point. It defines the predicted salary when experience is zero — in other words, the baseline pay before any years of work are counted. Here, the model assumes a new entrant starts around £${value}k, and everything else builds upward from that foundation.`
+        },
+        plantGrowth: {
+            w: `This controls the rate of growth. A weight of ${value} means the plant grows ${value}cm per week on average. It represents the vigour of the plant's development over time.`,
+            b: `This is the model’s starting point. It defines the seedling's height when first planted (Week 0). Here, the model assumes a starting height of ${value}cm, and growth builds upward from there.`
+        },
+        housePrices: {
+            w: `This controls how price relates to size. A weight of ${value} means every extra square metre adds £${value}k to the property value. It represents the premium paid for space.`,
+            b: `This is the model’s starting point. It represents the base land value before any floor space is accounted for. Here, the model assumes a base land value of £${value}k.`
+        },
+        carMileage: {
+            w: `This controls how value changes with mileage. A weight of ${value} implies the value shifts by £${value}k for every 10k miles driven.`,
+            b: `This is the model’s starting point. It defines the predicted resale value for a car with zero miles (brand new). Here, it assumes a showroom value of £${value}k.`
+        },
+        custom: {
+            w: `This controls how fast the Y Value changes with X. A slope of ${value} means Y increases by ${value} units for every 1 unit of X.`,
+            b: `This is the model’s starting point. It defines the Y Value when X is zero (the intercept). Here, the model starts at ${value}.`
+        }
+    };
+
+    const s = contexts[scenario] || contexts.custom;
+    return s[param];
+};
+
 // 1. DATA GENERATION
 export const generateData = () => {
     const data = [];
 
     // 1. Pick 4 unique random years (between 1 and 19 to avoid edges)
-    const availableYears = Array.from({length: 19}, (_, i) => i + 1); // [1, 2, ... 19]
-    // Shuffle years
+    const availableYears = Array.from({length: 19}, (_, i) => i + 1);
     availableYears.sort(() => Math.random() - 0.5);
     const selectedYears = availableYears.slice(0, 4);
 
     // 2. Prepare the 4 outlier types
     const types = ['massivePositive', 'moderatePositive', 'massiveNegative', 'moderateNegative'];
-    // Shuffle types so they don't always appear in the same order relative to years
     types.sort(() => Math.random() - 0.5);
 
     // 3. Map Years to Types
@@ -83,7 +110,7 @@ export const generateData = () => {
             const max = template.offset[1];
             const offset = min < max
                 ? min + Math.random() * (max - min)
-                : min + Math.random() * (min - max); // handle negatives
+                : min + Math.random() * (min - max);
 
             realWorldVariation += offset;
             isOutlier = true;
@@ -103,7 +130,7 @@ export const generateData = () => {
 };
 
 // 2. MODEL CALCULATIONS
-export const calculateModelFits = (rawData) => {
+export const calculateModelFits = (rawData, activeScenario = 'salary') => {
 
     // Linear
     const linearFit = rawData.map(d => ({
@@ -177,8 +204,18 @@ export const calculateModelFits = (rawData) => {
             icon: '📏',
             color: '#3b82f6',
             parameters: [
-                { symbol: 'w', name: 'Weight / Slope', value: '5.0', context: 'Rate of change' },
-                { symbol: 'b', name: 'Bias / Intercept', value: '45.0', context: 'Starting value' }
+                {
+                    symbol: 'w',
+                    name: 'Weight / Slope',
+                    value: '5.0',
+                    context: getScenarioContext(activeScenario, 'w', '5.0')
+                },
+                {
+                    symbol: 'b',
+                    name: 'Bias / Intercept',
+                    value: '45.0',
+                    context: getScenarioContext(activeScenario, 'b', '45.0')
+                }
             ]
         },
         polynomial: {
@@ -351,19 +388,10 @@ export const descriptions = {
 export const generateFittingExamples = () => {
     const data = [];
     for (let x = 0; x <= 10; x++) {
-        // The Signal (True Pattern)
         const signal = 50 + 20 * x - 1.5 * x * x;
-        // The Noise
         const noise = (Math.random() - 0.5) * 40;
         const actual = signal + noise;
-
-        data.push({
-            x,
-            actual,
-            underfit: 60 + 5 * x,
-            optimal: signal,
-            overfit: actual
-        });
+        data.push({ x, actual, underfit: 60 + 5 * x, optimal: signal, overfit: actual });
     }
     return data;
 };
