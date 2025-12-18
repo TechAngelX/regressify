@@ -1,10 +1,71 @@
 // src/data/regressionModels.js
 
+const OUTLIER_TEMPLATES = {
+    massivePositive: {
+        offset: [50, 70],
+        labels: {
+            salary: "MASSIVE OUTLIER: The 'Unicorn' Hire. 22yo Genius recruited by Big Tech. Salary detached from reality.",
+            plantGrowth: "MUTATION: Genetic anomaly combined with perfect hydroponic conditions. Growth exploded.",
+            housePrices: "MARKET MADNESS: Bidding war on a 'trophy' property. Sold for double the street average.",
+            carMileage: "COLLECTOR GRADE: 1-of-100 limited edition, never driven. Value skyrocketing.",
+            custom: "EXTREME HIGH: Rare black swan event caused a massive positive spike."
+        }
+    },
+    moderatePositive: {
+        offset: [20, 35],
+        labels: {
+            salary: "Top Performer: Consistently exceeds targets. Paid at the 90th percentile.",
+            plantGrowth: "Ideal Conditions: positioned in the sunniest spot of the greenhouse.",
+            housePrices: "Premium Finish: High-spec renovation added significant value.",
+            carMileage: "Low Mileage: Grandma's car, driven only to the shops on Sundays.",
+            custom: "Above Average: Favourable conditions boosted the result."
+        }
+    },
+    massiveNegative: {
+        offset: [-50, -70],
+        labels: {
+            salary: "CRITICAL FAIL: Role became obsolete. Demoted and pay frozen for a decade.",
+            plantGrowth: "CATASTROPHE: Accidental herbicide exposure halted growth completely.",
+            housePrices: "CONDEMNED: Structural collapse found. Value effectively land-only.",
+            carMileage: "WRITE-OFF: Category S structural damage. Value plummeted.",
+            custom: "EXTREME LOW: System failure caused a massive drop."
+        }
+    },
+    moderateNegative: {
+        offset: [-20, -35],
+        labels: {
+            salary: "Underpaid: Stayed loyal to a struggling company too long.",
+            plantGrowth: "Poor Soil: Nutrient deficiency slowed development.",
+            housePrices: "Needs Work: Dated interior and single glazing reduced the price.",
+            carMileage: "High Mileage: Ex-taxi or fleet vehicle. High wear and tear.",
+            custom: "Below Average: Limiting factors suppressed the result."
+        }
+    }
+};
+
 // 1. DATA GENERATION
 export const generateData = () => {
     const data = [];
+
+    // 1. Pick 4 unique random years (between 1 and 19 to avoid edges)
+    const availableYears = Array.from({length: 19}, (_, i) => i + 1); // [1, 2, ... 19]
+    // Shuffle years
+    availableYears.sort(() => Math.random() - 0.5);
+    const selectedYears = availableYears.slice(0, 4);
+
+    // 2. Prepare the 4 outlier types
+    const types = ['massivePositive', 'moderatePositive', 'massiveNegative', 'moderateNegative'];
+    // Shuffle types so they don't always appear in the same order relative to years
+    types.sort(() => Math.random() - 0.5);
+
+    // 3. Map Years to Types
+    const outlierMap = {};
+    selectedYears.forEach((year, index) => {
+        outlierMap[year] = types[index];
+    });
+
     for (let experience = 0; experience <= 20; experience++) {
-        // Base pattern: generic quadratic curve (works for salary, growth, etc.)
+        // Base pattern: generic quadratic curve
         const baseValue = 45 + 15 * experience - 0.3 * experience * experience;
 
         // Real world noise
@@ -12,40 +73,28 @@ export const generateData = () => {
         let label = null;
         let isOutlier = false;
 
-        // --- SCENARIO-AWARE OUTLIERS ---
+        // Check if this year was chosen as an outlier
+        if (outlierMap[experience]) {
+            const type = outlierMap[experience];
+            const template = OUTLIER_TEMPLATES[type];
 
-        // Outlier 1: Early Spike (Year 2)
-        if (experience === 2) {
-            realWorldVariation += 45;
-            isOutlier = true;
-            label = {
-                salary: "The Rockstar Junior: 22 years old, hired by a crypto startup. Knows Rust & AI. Earns way above market rate.",
-                plantGrowth: "Unusually rapid early growth due to ideal soil, nutrients, and sunlight.",
-                housePrices: "Property massively overpriced due to speculative market hype.",
-                carMileage: "Low-mileage car with premium upgrades inflating resale value.",
-                custom: "Extreme early deviation caused by favourable initial conditions."
-            };
-        }
+            // Calculate random offset within range
+            const min = template.offset[0];
+            const max = template.offset[1];
+            const offset = min < max
+                ? min + Math.random() * (max - min)
+                : min + Math.random() * (min - max); // handle negatives
 
-        // Outlier 2: Late Drop (Year 16)
-        if (experience === 16) {
-            realWorldVariation -= 35;
+            realWorldVariation += offset;
             isOutlier = true;
-            label = {
-                salary: "The Stagnant Senior: Stayed at the same legacy bank for 15 years. No new skills. Salary drifted below inflation.",
-                plantGrowth: "Stunted growth caused by poor soil quality or lack of sunlight.",
-                housePrices: "Undervalued property in a declining neighbourhood.",
-                carMileage: "High-mileage vehicle with accident history reducing value.",
-                custom: "Unexpected drop caused by hidden limiting factors."
-            };
+            label = template.labels;
         }
-        // -----------------------------
 
         const actual = baseValue + realWorldVariation;
 
         data.push({
             experience,
-            actual: Math.max(actual, 40), // Floor value
+            actual: Math.max(actual, 20), // Floor value
             label,
             isOutlier
         });

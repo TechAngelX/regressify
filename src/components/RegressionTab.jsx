@@ -1,3 +1,4 @@
+// src/components/RegressionTab.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { generateData, calculateModelFits, descriptions, generateFittingExamples } from '../data/regressionModels';
@@ -16,7 +17,6 @@ const presetScenarios = {
     xUnit: 'years',
     yUnit: ' k',
   },
-
   housePrices: {
     name: 'House Prices',
     icon: '🏠',
@@ -26,7 +26,6 @@ const presetScenarios = {
     xUnit: 'm²',
     yUnit: ' k',
   },
-
   carMileage: {
     name: 'Car Value',
     icon: '🚗',
@@ -36,7 +35,6 @@ const presetScenarios = {
     xUnit: '10k mi',
     yUnit: ' k',
   },
-
   plantGrowth: {
     name: 'Plant Growth',
     icon: '🌱',
@@ -46,7 +44,6 @@ const presetScenarios = {
     xUnit: 'weeks',
     yUnit: ' cm',
   },
-
   custom: {
     name: 'Custom',
     icon: '✏️',
@@ -255,15 +252,27 @@ const RegressionTab = () => {
                 </div>
             )}
 
-            <button
-                onClick={handleRegenerate}
-                className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg px-5 py-2.5 rounded-full transform hover:scale-105"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
-              </svg>
-              Regenerate
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                  onClick={handleRegenerate}
+                  className={`p-2 rounded-full transition-all shadow-md ${
+                      isDark ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' : 'bg-white hover:bg-indigo-50 text-indigo-600'
+                  }`}
+                  title="Shuffle Outliers"
+              >
+                <span className="text-xl">🎲</span>
+              </button>
+
+              <button
+                  onClick={handleRegenerate}
+                  className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg px-5 py-2.5 rounded-full transform hover:scale-105"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+                </svg>
+                Regenerate
+              </button>
+            </div>
           </div>
         </div>
 
