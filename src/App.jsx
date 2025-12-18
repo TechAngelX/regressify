@@ -3,6 +3,7 @@ import { ThemeProvider, useTheme } from './context/ThemeContext';
 import RegressionTab from './components/RegressionTab';
 import ClassificationTab from './components/ClassificationTab';
 
+// --- Internal Component: Theme Toggle Button ---
 const ThemeToggle = () => {
     const { isDark, toggleTheme } = useTheme();
 
@@ -37,6 +38,7 @@ const ThemeToggle = () => {
     );
 };
 
+// --- Internal Component: Main Content Structure ---
 const AppContent = () => {
     const [activeTab, setActiveTab] = useState('regression');
     const { isDark, bg, bgCard, text, textMuted, border } = useTheme();
@@ -115,6 +117,7 @@ const AppContent = () => {
     );
 };
 
+// --- Root App Component ---
 function App() {
     return (
         <ThemeProvider>

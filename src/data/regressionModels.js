@@ -6,6 +6,7 @@ const OUTLIER_TEMPLATES = {
         labels: {
             salary: "MASSIVE OUTLIER: The 'Unicorn' Hire. 22yo Genius recruited by Big Tech. Salary detached from reality.",
             plantGrowth: "MUTATION: Genetic anomaly combined with perfect hydroponic conditions. Growth exploded.",
+            memeAdoption: "THE ELON EFFECT: Elon Musk tweeted a Doge meme. 50M views in 1 hour. To the moon! 🚀",
             housePrices: "MARKET MADNESS: Bidding war on a 'trophy' property. Sold for double the street average.",
             carMileage: "COLLECTOR GRADE: 1-of-100 limited edition, never driven. Value skyrocketing.",
             custom: "EXTREME HIGH: Rare black swan event caused a massive positive spike."
@@ -16,6 +17,7 @@ const OUTLIER_TEMPLATES = {
         labels: {
             salary: "Top Performer: Consistently exceeds targets. Paid at the 90th percentile.",
             plantGrowth: "Ideal Conditions: positioned in the sunniest spot of the greenhouse.",
+            memeAdoption: "TRUMP McDONALDS: Viral photo op trended heavily on X and TikTok for the weekend.",
             housePrices: "Premium Finish: High-spec renovation added significant value.",
             carMileage: "Low Mileage: Grandma's car, driven only to the shops on Sundays.",
             custom: "Above Average: Favourable conditions boosted the result."
@@ -26,6 +28,7 @@ const OUTLIER_TEMPLATES = {
         labels: {
             salary: "CRITICAL FAIL: Role became obsolete. Demoted and pay frozen for a decade.",
             plantGrowth: "CATASTROPHE: Accidental herbicide exposure halted growth completely.",
+            memeAdoption: "YOUTUBE APOLOGY: The 'Toxic Gossip Train'. Universally disliked. Engagement dropped to zero instantly.",
             housePrices: "CONDEMNED: Structural collapse found. Value effectively land-only.",
             carMileage: "WRITE-OFF: Category S structural damage. Value plummeted.",
             custom: "EXTREME LOW: System failure caused a massive drop."
@@ -36,6 +39,7 @@ const OUTLIER_TEMPLATES = {
         labels: {
             salary: "Underpaid: Stayed loyal to a struggling company too long.",
             plantGrowth: "Poor Soil: Nutrient deficiency slowed development.",
+            memeAdoption: "CORPORATE CRINGE: A bank used 'Hawk Tuah' in an ad. The trend died immediately.",
             housePrices: "Needs Work: Dated interior and single glazing reduced the price.",
             carMileage: "High Mileage: Ex-taxi or fleet vehicle. High wear and tear.",
             custom: "Below Average: Limiting factors suppressed the result."
@@ -53,6 +57,10 @@ const getScenarioContext = (scenario, param, value) => {
         plantGrowth: {
             w: `This controls the rate of growth. A weight of ${value} means the plant grows ${value}cm per week on average. It represents the vigour of the plant's development over time.`,
             b: `This is the model’s starting point. It defines the seedling's height when first planted (Week 0). Here, the model assumes a starting height of ${value}cm, and growth builds upward from there.`
+        },
+        memeAdoption: {
+            w: `This represents 'Virality'. A weight of ${value} means gaining ${value}k new shares per hour. A higher weight implies the content is more contagious (High R-nought).`,
+            b: `This is the 'Initial Seed'. It defines how many people saw the meme immediately upon upload (e.g. your existing followers). Here, it starts with ${value}k views.`
         },
         housePrices: {
             w: `This controls how price relates to size. A weight of ${value} means every extra square metre adds £${value}k to the property value. It represents the premium paid for space.`,
@@ -225,7 +233,6 @@ export const calculateModelFits = (rawData, activeScenario = 'salary') => {
             color: '#10b981',
             parameters: [
                 { symbol: 'w₁', name: 'Linear Term', value: '15.0', context: 'Initial rapid growth' },
-                { symbol: 'w₂', name: 'Squared Term', value: '-0.3', context: 'The "plateau" effect' },
                 { symbol: 'b', name: 'Bias', value: '45.0', context: 'Starting value' }
             ]
         },
@@ -388,10 +395,19 @@ export const descriptions = {
 export const generateFittingExamples = () => {
     const data = [];
     for (let x = 0; x <= 10; x++) {
+        // The Signal (True Pattern)
         const signal = 50 + 20 * x - 1.5 * x * x;
+        // The Noise
         const noise = (Math.random() - 0.5) * 40;
         const actual = signal + noise;
-        data.push({ x, actual, underfit: 60 + 5 * x, optimal: signal, overfit: actual });
+
+        data.push({
+            x,
+            actual,
+            underfit: 60 + 5 * x,
+            optimal: signal,
+            overfit: actual
+        });
     }
     return data;
 };
