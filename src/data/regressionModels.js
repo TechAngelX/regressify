@@ -1,40 +1,51 @@
-// src/data/salaryModels.js
+// src/data/regressionModels.js
 
 // 1. DATA GENERATION
 export const generateData = () => {
     const data = [];
     for (let experience = 0; experience <= 20; experience++) {
-        // Base salary pattern: starts at 45k, rapid growth early on,
-        // then plateaus as you reach senior levels
-        const baseSalary = 45 + 15 * experience - 0.3 * experience * experience;
+        // Base pattern: generic quadratic curve (works for salary, growth, etc.)
+        const baseValue = 45 + 15 * experience - 0.3 * experience * experience;
 
         // Real world noise
         let realWorldVariation = (Math.random() - 0.5) * 20;
-        let label = null;       // Default: no special label
-        let isOutlier = false;  // Default: normal employee
+        let label = null;
+        let isOutlier = false;
 
-        // --- STORYTELLING OUTLIERS ---
+        // --- SCENARIO-AWARE OUTLIERS ---
 
-        // Outlier 1: The "Rockstar Junior" (Year 2)
+        // Outlier 1: Early Spike (Year 2)
         if (experience === 2) {
             realWorldVariation += 45;
             isOutlier = true;
-            label = "The Rockstar Junior: 22 years old, hired by a crypto startup. Knows Rust & AI. Earns way above market rate.";
+            label = {
+                salary: "The Rockstar Junior: 22 years old, hired by a crypto startup. Knows Rust & AI. Earns way above market rate.",
+                plantGrowth: "Unusually rapid early growth due to ideal soil, nutrients, and sunlight.",
+                housePrices: "Property massively overpriced due to speculative market hype.",
+                carMileage: "Low-mileage car with premium upgrades inflating resale value.",
+                custom: "Extreme early deviation caused by favourable initial conditions."
+            };
         }
 
-        // Outlier 2: The "Stagnant Senior" (Year 16)
+        // Outlier 2: Late Drop (Year 16)
         if (experience === 16) {
             realWorldVariation -= 35;
             isOutlier = true;
-            label = "The Stagnant Senior: Stayed at the same legacy bank for 15 years. No new skills (Cobol/Java 7). Salary drifted below inflation.";
+            label = {
+                salary: "The Stagnant Senior: Stayed at the same legacy bank for 15 years. No new skills. Salary drifted below inflation.",
+                plantGrowth: "Stunted growth caused by poor soil quality or lack of sunlight.",
+                housePrices: "Undervalued property in a declining neighbourhood.",
+                carMileage: "High-mileage vehicle with accident history reducing value.",
+                custom: "Unexpected drop caused by hidden limiting factors."
+            };
         }
         // -----------------------------
 
-        const salary = baseSalary + realWorldVariation;
+        const actual = baseValue + realWorldVariation;
 
         data.push({
             experience,
-            actual: Math.max(salary, 40), // minimum salary floor
+            actual: Math.max(actual, 40), // Floor value
             label,
             isOutlier
         });
@@ -99,8 +110,8 @@ export const calculateModelFits = (rawData) => {
         }));
         const k = 3;
         const neighbors = withDistances.sort((a, b) => a.distance - b.distance).slice(0, k);
-        const avgSalary = neighbors.reduce((sum, n) => sum + n.actual, 0) / k;
-        return { ...targetPoint, predicted: avgSalary };
+        const avgVal = neighbors.reduce((sum, n) => sum + n.actual, 0) / k;
+        return { ...targetPoint, predicted: avgVal };
     });
 
     // Neural Network
@@ -117,8 +128,8 @@ export const calculateModelFits = (rawData) => {
             icon: '📏',
             color: '#3b82f6',
             parameters: [
-                { symbol: 'w', name: 'Weight / Slope', value: '5.0', context: 'Raise per year (£5k)' },
-                { symbol: 'b', name: 'Bias / Intercept', value: '45.0', context: 'Starting base salary (£45k)' }
+                { symbol: 'w', name: 'Weight / Slope', value: '5.0', context: 'Rate of change' },
+                { symbol: 'b', name: 'Bias / Intercept', value: '45.0', context: 'Starting value' }
             ]
         },
         polynomial: {
@@ -127,9 +138,9 @@ export const calculateModelFits = (rawData) => {
             icon: '📈',
             color: '#10b981',
             parameters: [
-                { symbol: 'w₁', name: 'Linear Term', value: '15.0', context: 'Initial rapid growth rate' },
-                { symbol: 'w₂', name: 'Squared Term', value: '-0.3', context: 'The "plateau" effect (negative curve)' },
-                { symbol: 'b', name: 'Bias', value: '45.0', context: 'Starting base salary' }
+                { symbol: 'w₁', name: 'Linear Term', value: '15.0', context: 'Initial rapid growth' },
+                { symbol: 'w₂', name: 'Squared Term', value: '-0.3', context: 'The "plateau" effect' },
+                { symbol: 'b', name: 'Bias', value: '45.0', context: 'Starting value' }
             ]
         },
         tree: {
@@ -139,7 +150,7 @@ export const calculateModelFits = (rawData) => {
             color: '#f59e0b',
             parameters: [
                 { symbol: 'd', name: 'Depth', value: '5', context: 'Max "questions" asked' },
-                { symbol: 'n', name: 'Leaves', value: '5', context: 'Distinct salary bands' }
+                { symbol: 'n', name: 'Leaves', value: '5', context: 'Distinct value bands' }
             ]
         },
         forest: {
@@ -148,8 +159,8 @@ export const calculateModelFits = (rawData) => {
             icon: '🌲',
             color: '#059669',
             parameters: [
-                { symbol: 'N', name: 'Trees', value: '3', context: 'Number of experts consulted' },
-                { symbol: 'μ', name: 'Aggregation', value: 'Mean', context: 'Averaging the predictions' }
+                { symbol: 'N', name: 'Trees', value: '3', context: 'Number of experts' },
+                { symbol: 'μ', name: 'Aggregation', value: 'Mean', context: 'Averaging predictions' }
             ]
         },
         boosting: {
@@ -158,8 +169,8 @@ export const calculateModelFits = (rawData) => {
             icon: '🚀',
             color: '#be123c',
             parameters: [
-                { symbol: 'η', name: 'Learning Rate', value: '0.1', context: 'Size of correction steps' },
-                { symbol: 'i', name: 'Iterations', value: '3', context: 'Number of correction rounds' }
+                { symbol: 'η', name: 'Learning Rate', value: '0.1', context: 'Correction step size' },
+                { symbol: 'i', name: 'Iterations', value: '3', context: 'Correction rounds' }
             ]
         },
         svm: {
@@ -168,8 +179,8 @@ export const calculateModelFits = (rawData) => {
             icon: '🎯',
             color: '#ec4899',
             parameters: [
-                { symbol: 'K', name: 'Kernel', value: 'RBF', context: 'Curved boundary (Radial Basis)' },
-                { symbol: 'ε', name: 'Epsilon', value: '0.1', context: 'Allowed error margin (The Tube)' }
+                { symbol: 'K', name: 'Kernel', value: 'RBF', context: 'Curved boundary' },
+                { symbol: 'ε', name: 'Epsilon', value: '0.1', context: 'Allowed error margin' }
             ]
         },
         knn: {
@@ -178,7 +189,7 @@ export const calculateModelFits = (rawData) => {
             icon: '👥',
             color: '#ea580c',
             parameters: [
-                { symbol: 'k', name: 'Neighbors', value: '3', context: 'Similar employees compared' },
+                { symbol: 'k', name: 'Neighbors', value: '3', context: 'Similar points used' },
                 { symbol: 'd', name: 'Distance', value: 'Euclidean', context: 'Similarity metric' }
             ]
         },
@@ -200,10 +211,10 @@ export const descriptions = {
     linear: {
         title: 'Linear Regression',
         math: 'y = wx + b',
-        desc: 'The simplest approach. It assumes salary is a straight line upwards: £5k extra for every year you work. It ignores the fact that growth usually slows down later in your career.',
+        desc: 'The simplest approach. It assumes a straight line relationship: a constant increase for every unit of X. It ignores the fact that growth usually slows down or accelerates.',
         when: 'Great for simple trends, but life is rarely a straight line.',
-        howItWorks: 'It draws a straight line (y = mx + b) right through the middle of the mess. It looks at the scattered dots (real people) and finds the average path. If you have 5 years experience, it predicts £70k, ignoring that some people make £60k and others £80k.',
-        realExample: 'It\'s like saying "Every year adds exactly £5k to your worth." Simple, easy to explain, but often too simple for the real world.',
+        howItWorks: 'It draws a straight line (y = mx + b) right through the middle of the mess. It looks at the scattered dots and finds the average path.',
+        realExample: 'Like saying "Every year adds exactly £5k to your worth." Simple, easy to explain, but often too simple for the real world.',
         visualPattern: 'A straight diagonal line. The dots are scattered all around it, showing the "noise" of real life.',
         pros: ['Super easy to explain', 'Calculates instantly', 'Hard to break (doesn\'t overfit)', 'Great baseline to start with'],
         cons: ['Misses curves (like career plateaus)', 'Too rigid for complex data', 'Oversimplifies reality']
@@ -211,10 +222,10 @@ export const descriptions = {
     polynomial: {
         title: 'Polynomial Regression',
         math: 'y = w₁x + w₂x² + b',
-        desc: 'Now we\'re adding curves. This model understands that you learn fast in the beginning (salary spikes) but eventually hit a ceiling (salary plateau).',
+        desc: 'Now we\'re adding curves. This model understands that things can grow fast in the beginning but eventually hit a ceiling (plateau).',
         when: 'When the trend clearly isn\'t straight (e.g. rapid growth then slowing down).',
-        howItWorks: 'Instead of just x (years), we use x² or x³. This lets the line bend. It fits the "inverted U" shape of a typical career path much better than a straight line.',
-        realExample: 'Junior devs get big raises fast. Principal devs get smaller percentage raises. This model captures that changing speed.',
+        howItWorks: 'Instead of just x, we use x² or x³. This lets the line bend. It fits the "inverted U" shape often found in nature and economics.',
+        realExample: 'Junior staff get big raises fast; senior staff get smaller percentage raises. Plants grow fast then stop.',
         visualPattern: 'A smooth curve that climbs steep and then flattens out. It follows the "shape" of the data better.',
         pros: ['Fits curved patterns nicely', 'Still fairly easy to interpret', 'Matches natural growth cycles'],
         cons: ['Can go wild at the edges (extrapolation)', 'If you add too many curves, it gets messy', 'Harder to explain the math']
@@ -222,21 +233,21 @@ export const descriptions = {
     tree: {
         title: 'Decision Tree Regression',
         math: 'if x < a then y = b',
-        desc: 'Think of this like an HR flowchart. It creates strict salary bands based on experience brackets: Junior, Mid, Senior, Lead.',
+        desc: 'Think of this like a flowchart. It creates strict value bands based on brackets of X.',
         when: 'When you need clear-cut rules that humans can easily follow.',
-        howItWorks: 'It asks questions: "Less than 2 years? Pay £50k. Less than 5? Pay £75k." It doesn\'t care about the specific year, just which bucket you fall into.',
-        realExample: 'Exactly like job ads: "3-5 years experience: £75k-£85k." It groups everyone in that range together.',
+        howItWorks: 'It asks questions: "Less than 2? Value is 50. Less than 5? Value is 75." It doesn\'t care about the specific number, just which bucket you fall into.',
+        realExample: 'Like salary bands: "3-5 years experience: £75k-£85k." It groups everyone in that range together.',
         visualPattern: 'Steps or stairs. Flat lines that jump suddenly. It doesn\'t look natural, but it\'s very logical.',
         pros: ['Crystal clear logic', 'Handles outliers well', 'Mimics human decision making', 'No complex math needed'],
-        cons: ['Unrealistic jumps (4.9 years vs 5.0 years)', 'Can be unstable', 'Misses the nuance of individual years']
+        cons: ['Unrealistic jumps (4.9 vs 5.0)', 'Can be unstable', 'Misses the nuance of individual points']
     },
     forest: {
         title: 'Random Forest',
         math: 'Σ Tree_i / N',
-        desc: 'This is just a team of Decision Trees working together. We ask 100 different trees to guess the salary, then take the average. It smooths out the edges.',
+        desc: 'This is just a team of Decision Trees working together. We ask 100 different trees to guess, then take the average. It smooths out the edges.',
         when: 'When accuracy matters more than having a simple formula.',
-        howItWorks: 'One tree might obsess over early career, another over late career. By averaging them (the "ensemble"), we get rid of the biases and get a solid prediction.',
-        realExample: 'It\'s like asking 50 different managers what they\'d pay you and taking the average. You get a much fairer number than asking just one person.',
+        howItWorks: 'One tree might obsess over early data, another over late data. By averaging them (the "ensemble"), we get rid of the biases.',
+        realExample: 'Like asking 50 different experts for an estimate and taking the average. Fairer than asking just one person.',
         visualPattern: 'Jagged steps, but much smaller and smoother than a single Tree. It starts to look like a curve.',
         pros: ['Extremely accurate', 'Very robust (hard to fool)', 'Handles messy data brilliantly'],
         cons: ['Total "black box" (hard to see why it decided X)', 'Slow to train', 'Computer heavy']
@@ -246,8 +257,8 @@ export const descriptions = {
         math: 'y = F(x) + h(x)',
         desc: 'The perfectionist. Instead of averaging random trees (like a Forest), it builds trees one by one, where each new tree tries to fix the mistakes of the previous one.',
         when: 'When you want to win a competition. It is the gold standard for tabular data.',
-        howItWorks: 'It looks at the data points it got wrong and focuses purely on them. "I missed the Rockstar Junior? Okay, I\'ll build a specific rule just for them." It iteratively reduces error.',
-        realExample: 'Like a teacher grading a test, then a second teacher grading the corrections, then a third teacher grading the remaining nuances. It gets incredibly precise.',
+        howItWorks: 'It looks at the data points it got wrong and focuses purely on them. "I missed the outlier? Okay, I\'ll build a specific rule just for them."',
+        realExample: 'Like a teacher grading a test, then a second teacher grading the corrections, then a third teacher grading the remaining nuances.',
         visualPattern: 'Similar to a Forest (steps), but often fits the data points—including outliers—much tighter.',
         pros: ['Often the highest accuracy', 'State-of-the-art for tables', 'Handles mixed data types well'],
         cons: ['Can easily "overfit" (memorise noise)', 'Hard to tune', 'Sensitive to outliers (it tries to fix them)']
@@ -258,7 +269,7 @@ export const descriptions = {
         desc: 'Imagine trying to wrap a wide rubber band around your data points. SVM tries to find the "tube" that fits the most points comfortably.',
         when: 'When you have lots of different factors (dimensions) and need a robust curve.',
         howItWorks: 'It uses a "kernel trick" to project the data into higher dimensions to find the best fit. It cares more about the general flow than individual outliers.',
-        realExample: 'It ignores the guy making £200k with 2 years experience (the outlier) to focus on where the majority of people sit.',
+        realExample: 'It ignores the extreme outliers to focus on where the majority of points sit.',
         visualPattern: 'A smooth, stiff curve. It feels "tighter" and often more conservative than the Polynomial.',
         pros: ['Great for high-dimensional data', 'Ignores extreme outliers', 'Very flexible'],
         cons: ['Painful to tune (gamma, epsilon, etc.)', 'Slow on big datasets', 'Math is scary']
@@ -266,46 +277,42 @@ export const descriptions = {
     knn: {
         title: 'k-Nearest Neighbors (k-NN)',
         math: 'avg(y_near)',
-        desc: 'The copycat method. "Show me the 3 people most similar to this candidate, and I\'ll guess their salary based on them."',
+        desc: 'The copycat method. "Show me the 3 points most similar to this one, and I\'ll guess based on them."',
         when: 'When local similarity matters more than a global trend.',
-        howItWorks: 'If you have 7 years experience, it ignores the Juniors and Principals. It finds the nearest existing employees (e.g. 6.8, 7.0, 7.2 years) and averages their pay.',
-        realExample: 'Real estate agents do this: "This house is worth X because the 3 houses next door sold for X."',
-        visualPattern: 'A wobbly, jagged line. It reacts to every local cluster of dots. If there\'s a random high earner, the line bumps up right there.',
+        howItWorks: 'If X is 7, it ignores X=2 and X=15. It finds the nearest existing points (e.g. 6.8, 7.0, 7.2) and averages their values.',
+        realExample: 'Real estate: "This house is worth X because the 3 houses next door sold for X."',
+        visualPattern: 'A wobbly, jagged line. It reacts to every local cluster of dots. If there\'s a random high point, the line bumps up right there.',
         pros: ['Zero training time', 'Very intuitive concept', 'Adapts to local changes instantly'],
         cons: ['Slow when you have to predict', 'Gets confused by useless data', 'Sensitive to noise']
     },
     neural: {
         title: 'Neural Network Regression',
         math: 'f(W_2 σ(W_1 x))',
-        desc: 'The brain approach. It doesn\'t just treat inputs as separate numbers; it passes them through layers of "neurons" to find hidden connections. For example, it might learn that experience usually raises pay, but specific combinations—like "Senior" plus "AI" during a "Market Boom"—create a massive salary spike that a simple line graph would completely miss.',
+        desc: 'The brain approach. It passes inputs through layers of "neurons" to find hidden connections and complex non-linear patterns.',
         when: 'When you have massive data and the relationship is too complex for simple math.',
-        howItWorks: 'Data goes in, flows through layers of calculations, and salary comes out. It learns its own rules. It can spot things we miss, like "Salary dips at year 5 then spikes at year 7".',
-        realExample: 'It\'s like an experienced recruiter who just "knows" a salary based on a thousand tiny factors they can\'t even explain.',
+        howItWorks: 'Data goes in, flows through layers of calculations, and a prediction comes out. It learns its own rules.',
+        realExample: 'It\'s like an expert who just "knows" the answer based on a thousand tiny factors they can\'t even explain.',
         visualPattern: 'A smooth but wavy curve. It follows the trend but captures subtle oscillations and shifts that others miss.',
         pros: ['Unbeatable on complex tasks', 'Learns hidden features', 'Gets smarter with more data'],
         cons: ['Needs thousands of examples', 'Total black box', 'Can overthink it (overfit) if you aren\'t careful']
     }
 };
 
-// 4. HELPER FOR EDUCATIONAL CHARTS (NEW)
+// 4. HELPER FOR EDUCATIONAL CHARTS
 export const generateFittingExamples = () => {
     const data = [];
     for (let x = 0; x <= 10; x++) {
-        // The Signal (True Pattern): A simple quadratic curve
+        // The Signal (True Pattern)
         const signal = 50 + 20 * x - 1.5 * x * x;
-
-        // The Noise: Random fluctuation
+        // The Noise
         const noise = (Math.random() - 0.5) * 40;
         const actual = signal + noise;
 
         data.push({
             x,
             actual,
-            // 1. Underfit: A lazy straight line that misses the curve
             underfit: 60 + 5 * x,
-            // 2. Optimal: The true signal (without noise)
             optimal: signal,
-            // 3. Overfit: Connects the dots (includes the noise)
             overfit: actual
         });
     }
