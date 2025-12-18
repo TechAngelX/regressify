@@ -2,10 +2,10 @@
 import React, { useState, useMemo } from 'react';
 import { ComposedChart, Line, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { classificationModels, classificationDescriptions, calculateBoundary } from '../data/classificationModels';
+import { useTheme } from '../context/ThemeContext';
 import ParameterCard from './shared/ParameterCard';
 import ModelDescription from './shared/ModelDescription';
 
-// Preset scenarios for classification
 const classificationScenarios = {
   hiring: {
     name: 'Job Hiring',
@@ -57,7 +57,6 @@ const classificationScenarios = {
   }
 };
 
-// Generate data based on scenario
 const generateScenarioData = (scenario) => {
   const data = [];
   for (let i = 0; i < 50; i++) {
@@ -79,6 +78,8 @@ const generateScenarioData = (scenario) => {
 };
 
 const ClassificationTab = () => {
+  const { isDark, bgCard, text, textMuted, border, chartGrid, chartAxis } = useTheme();
+  
   const [activeModel, setActiveModel] = useState('logistic');
   const [activeScenario, setActiveScenario] = useState('hiring');
   const [customX, setCustomX] = useState('Feature 1');
@@ -86,7 +87,6 @@ const ClassificationTab = () => {
   const [customClass1, setCustomClass1] = useState('Class A');
   const [customClass2, setCustomClass2] = useState('Class B');
 
-  // Get current scenario config
   const scenario = useMemo(() => {
     const s = classificationScenarios[activeScenario];
     if (activeScenario === 'custom') {
@@ -103,7 +103,6 @@ const ClassificationTab = () => {
 
   const [classificationData, setClassificationData] = useState(() => generateScenarioData(classificationScenarios.hiring));
 
-  // Regenerate data when scenario changes
   const handleRegenerate = () => setClassificationData(generateScenarioData(scenario));
 
   const class1Points = classificationData.filter(d => d.class === 1);
@@ -121,18 +120,20 @@ const ClassificationTab = () => {
     return points;
   }, [activeModel]);
 
-  // Dynamic tooltip
   const DynamicTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const isClass1 = data.class === 1;
       return (
-        <div className={`p-4 rounded-lg shadow-xl border-2 z-50`} style={{ 
-          backgroundColor: isClass1 ? `${scenario.class1.color}15` : `${scenario.class2.color}15`,
-          borderColor: isClass1 ? scenario.class1.color : scenario.class2.color
-        }}>
-          <p className="font-bold text-gray-800 mb-1">{scenario.xLabel}: {data.x}</p>
-          <p className="text-gray-600">{scenario.yLabel}: {data.y}</p>
+        <div 
+          className="p-4 rounded-lg shadow-xl border-2 z-50"
+          style={{ 
+            backgroundColor: isDark ? '#1e293b' : (isClass1 ? `${scenario.class1.color}15` : `${scenario.class2.color}15`),
+            borderColor: isClass1 ? scenario.class1.color : scenario.class2.color
+          }}
+        >
+          <p className={`font-bold mb-1 ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>{scenario.xLabel}: {data.x}</p>
+          <p className={isDark ? 'text-gray-400' : 'text-gray-600'}>{scenario.yLabel}: {data.y}</p>
           <p className="font-bold mt-1" style={{ color: isClass1 ? scenario.class1.color : scenario.class2.color }}>
             {data.label}
           </p>
@@ -145,9 +146,9 @@ const ClassificationTab = () => {
   return (
     <div className="max-w-6xl mx-auto">
       {/* SCENARIO PICKER */}
-      <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
+      <div className={`rounded-xl shadow-lg p-4 mb-6 ${bgCard}`}>
         <div className="flex flex-wrap items-center gap-3 mb-3">
-          <span className="text-sm font-bold text-gray-700">What are you classifying?</span>
+          <span className={`text-sm font-bold ${text}`}>What are you classifying?</span>
           <div className="flex flex-wrap gap-2">
             {Object.entries(classificationScenarios).map(([key, s]) => (
               <button
@@ -159,7 +160,7 @@ const ClassificationTab = () => {
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
                   activeScenario === key
                     ? 'bg-indigo-600 text-white shadow-md'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : isDark ? 'bg-slate-700 text-gray-300 hover:bg-slate-600' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                 }`}
               >
                 <span className="mr-1">{s.icon}</span> {s.name}
@@ -168,48 +169,56 @@ const ClassificationTab = () => {
           </div>
         </div>
         
-        {/* Custom inputs */}
         {activeScenario === 'custom' && (
-          <div className="flex flex-wrap gap-4 pt-3 border-t border-gray-100">
+          <div className={`flex flex-wrap gap-4 pt-3 border-t ${border}`}>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">X-Axis:</label>
+              <label className={`text-sm ${textMuted}`}>X-Axis:</label>
               <input
                 type="text"
                 value={customX}
                 onChange={(e) => setCustomX(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-32"
+                className={`px-3 py-1.5 border rounded-lg text-sm w-32 ${
+                  isDark ? 'bg-slate-700 border-slate-600 text-gray-200' : 'bg-white border-gray-300'
+                }`}
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Y-Axis:</label>
+              <label className={`text-sm ${textMuted}`}>Y-Axis:</label>
               <input
                 type="text"
                 value={customY}
                 onChange={(e) => setCustomY(e.target.value)}
-                className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm w-32"
+                className={`px-3 py-1.5 border rounded-lg text-sm w-32 ${
+                  isDark ? 'bg-slate-700 border-slate-600 text-gray-200' : 'bg-white border-gray-300'
+                }`}
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Class 1:</label>
+              <label className={`text-sm ${textMuted}`}>Class 1:</label>
               <input
                 type="text"
                 value={customClass1}
                 onChange={(e) => setCustomClass1(e.target.value)}
-                className="px-3 py-1.5 border border-green-300 rounded-lg text-sm w-24 bg-green-50"
+                className={`px-3 py-1.5 rounded-lg text-sm w-24 ${
+                  isDark ? 'bg-green-900/30 border border-green-700 text-green-300' : 'border border-green-300 bg-green-50'
+                }`}
               />
             </div>
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Class 2:</label>
+              <label className={`text-sm ${textMuted}`}>Class 2:</label>
               <input
                 type="text"
                 value={customClass2}
                 onChange={(e) => setCustomClass2(e.target.value)}
-                className="px-3 py-1.5 border border-red-300 rounded-lg text-sm w-24 bg-red-50"
+                className={`px-3 py-1.5 rounded-lg text-sm w-24 ${
+                  isDark ? 'bg-red-900/30 border border-red-700 text-red-300' : 'border border-red-300 bg-red-50'
+                }`}
               />
             </div>
           </div>
         )}
       </div>
+
       {/* MODEL SELECTION BUTTONS */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-6">
         {Object.entries(classificationModels).map(([key, model]) => (
@@ -219,7 +228,7 @@ const ClassificationTab = () => {
             className={`w-full py-4 rounded-lg font-semibold transition-all shadow-md flex flex-col items-center gap-2 ${
               activeModel === key
                 ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg scale-105 transform'
-                : 'bg-white text-gray-700 hover:bg-gray-50'
+                : isDark ? 'bg-slate-800 text-gray-300 hover:bg-slate-700' : 'bg-white text-gray-700 hover:bg-gray-50'
             }`}
           >
             <span className="text-2xl">{model.icon}</span>
@@ -239,31 +248,39 @@ const ClassificationTab = () => {
             <span className="w-3 h-3 rounded-full" style={{ backgroundColor: scenario.class2.color }}></span>
             <span style={{ color: scenario.class2.color }}>{scenario.class2.name}</span>
           </div>
-          <div className="flex items-center gap-1"><span className="w-6 h-1 rounded bg-current" style={{ color: currentModel.color }}></span><span style={{ color: currentModel.color }}>Decision Boundary</span></div>
+          <div className="flex items-center gap-1">
+            <span className="w-6 h-1 rounded" style={{ backgroundColor: currentModel.color }}></span>
+            <span style={{ color: currentModel.color }}>Decision Boundary</span>
+          </div>
         </div>
 
-        <button onClick={handleRegenerate} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg hover:shadow-indigo-500/30 px-5 py-2.5 rounded-full transform hover:scale-105">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
-          Regenerate Data
+        <button 
+          onClick={handleRegenerate} 
+          className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg px-5 py-2.5 rounded-full transform hover:scale-105"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/>
+          </svg>
+          Regenerate
         </button>
       </div>
 
       {/* MAIN CHART */}
-      <div className="bg-white rounded-xl shadow-xl p-6 mb-6">
+      <div className={`rounded-xl shadow-xl p-6 mb-6 ${bgCard}`}>
         <ResponsiveContainer width="100%" height={400}>
           <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
             <XAxis 
               dataKey="x" 
-              label={{ value: scenario.xLabel, position: 'insideBottom', offset: -10 }} 
-              stroke="#6b7280" 
+              label={{ value: scenario.xLabel, position: 'insideBottom', offset: -10, fill: chartAxis }} 
+              stroke={chartAxis} 
               type="number" 
               domain={[0, 15]} 
             />
             <YAxis 
               dataKey="y"
-              label={{ value: scenario.yLabel, angle: -90, position: 'insideLeft', offset: 0 }} 
-              stroke="#6b7280" 
+              label={{ value: scenario.yLabel, angle: -90, position: 'insideLeft', offset: 0, fill: chartAxis }} 
+              stroke={chartAxis} 
               domain={[0, 100]} 
             />
             <Tooltip content={<DynamicTooltip />} />
@@ -296,30 +313,38 @@ const ClassificationTab = () => {
       <ModelDescription {...currentDesc} color={currentModel.color} />
 
       {/* EDUCATIONAL: CLASSIFICATION VS REGRESSION */}
-      <div className="bg-gradient-to-br from-slate-100 to-slate-200 rounded-xl shadow-inner p-6 mb-6">
-        <h3 className="text-xl font-bold text-slate-700 mb-4 text-center">Classification vs Regression: What's the Difference?</h3>
+      <div className={`rounded-xl shadow-inner p-6 mb-6 ${
+        isDark ? 'bg-slate-800/50' : 'bg-gradient-to-br from-slate-100 to-slate-200'
+      }`}>
+        <h3 className={`text-xl font-bold mb-4 text-center ${isDark ? 'text-gray-200' : 'text-slate-700'}`}>
+          Classification vs Regression: What's the Difference?
+        </h3>
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h4 className="font-bold text-indigo-700 mb-2 text-lg">📊 Regression</h4>
-            <p className="text-gray-700 mb-3">Predicts a <strong>continuous number</strong>.</p>
-            <ul className="text-sm text-gray-600 space-y-1 mb-3">
-              <li>&bull; "What salary will this person earn?" → <span className="font-mono text-indigo-600">£72,500</span></li>
-              <li>&bull; "How many units will we sell?" → <span className="font-mono text-indigo-600">1,247</span></li>
-              <li>&bull; "What's the house price?" → <span className="font-mono text-indigo-600">£385,000</span></li>
+          <div className={`p-5 rounded-lg border shadow-sm ${
+            isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+          }`}>
+            <h4 className={`font-bold mb-2 text-lg ${isDark ? 'text-indigo-400' : 'text-indigo-700'}`}>📊 Regression</h4>
+            <p className={`mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Predicts a <strong>continuous number</strong>.</p>
+            <ul className={`text-sm space-y-1 mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <li>* "What salary will this person earn?" → <span className="font-mono text-indigo-500">£72,500</span></li>
+              <li>* "How many units will we sell?" → <span className="font-mono text-indigo-500">1,247</span></li>
+              <li>* "What's the house price?" → <span className="font-mono text-indigo-500">£385,000</span></li>
             </ul>
-            <div className="bg-indigo-50 p-2 rounded text-xs text-indigo-700">
+            <div className={`p-2 rounded text-xs ${isDark ? 'bg-indigo-900/30 text-indigo-300' : 'bg-indigo-50 text-indigo-700'}`}>
               Output: Any number on a continuous scale
             </div>
           </div>
-          <div className="bg-white p-5 rounded-lg border border-slate-200 shadow-sm">
-            <h4 className="font-bold text-green-700 mb-2 text-lg">🏷️ Classification</h4>
-            <p className="text-gray-700 mb-3">Predicts a <strong>category/label</strong>.</p>
-            <ul className="text-sm text-gray-600 space-y-1 mb-3">
-              <li>&bull; Your scenario: → <span className="font-mono" style={{color: scenario.class1.color}}>{scenario.class1.name}</span> / <span className="font-mono" style={{color: scenario.class2.color}}>{scenario.class2.name}</span></li>
-              <li>&bull; "Is this email spam?" → <span className="font-mono text-green-600">Spam / Not Spam</span></li>
-              <li>&bull; "What digit is this?" → <span className="font-mono text-green-600">0, 1, 2, ... 9</span></li>
+          <div className={`p-5 rounded-lg border shadow-sm ${
+            isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
+          }`}>
+            <h4 className={`font-bold mb-2 text-lg ${isDark ? 'text-green-400' : 'text-green-700'}`}>🏷️ Classification</h4>
+            <p className={`mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Predicts a <strong>category/label</strong>.</p>
+            <ul className={`text-sm space-y-1 mb-3 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+              <li>* Your scenario: → <span className="font-mono" style={{color: scenario.class1.color}}>{scenario.class1.name}</span> / <span className="font-mono" style={{color: scenario.class2.color}}>{scenario.class2.name}</span></li>
+              <li>* "Is this email spam?" → <span className="font-mono text-green-500">Spam / Not Spam</span></li>
+              <li>* "What digit is this?" → <span className="font-mono text-green-500">0, 1, 2, ... 9</span></li>
             </ul>
-            <div className="bg-green-50 p-2 rounded text-xs text-green-700">
+            <div className={`p-2 rounded text-xs ${isDark ? 'bg-green-900/30 text-green-300' : 'bg-green-50 text-green-700'}`}>
               Output: One of a fixed set of categories
             </div>
           </div>
@@ -327,64 +352,86 @@ const ClassificationTab = () => {
       </div>
 
       {/* EDUCATIONAL: CONFUSION MATRIX */}
-      <div className="bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl shadow-lg p-6 mb-6">
-        <h3 className="text-xl font-bold text-orange-700 mb-3">The Confusion Matrix: Measuring Classification Performance</h3>
-        <p className="text-gray-700 mb-4">Unlike regression (where we measure error), classification needs different metrics. The confusion matrix shows all possible outcomes:</p>
+      <div className={`rounded-xl shadow-lg p-6 mb-6 ${
+        isDark ? 'bg-amber-900/20' : 'bg-gradient-to-br from-amber-50 to-orange-50'
+      }`}>
+        <h3 className={`text-xl font-bold mb-3 ${isDark ? 'text-amber-400' : 'text-orange-700'}`}>
+          The Confusion Matrix: Measuring Classification Performance
+        </h3>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          Unlike regression (where we measure error), classification needs different metrics. The confusion matrix shows all possible outcomes:
+        </p>
         
         <div className="grid md:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg p-4 shadow-sm">
+          <div className={`rounded-lg p-4 shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
             <div className="grid grid-cols-3 gap-1 text-center text-sm">
               <div></div>
               <div className="font-bold p-2" style={{color: scenario.class1.color}}>Actually {scenario.class1.name}</div>
               <div className="font-bold p-2" style={{color: scenario.class2.color}}>Actually {scenario.class2.name}</div>
               
               <div className="font-bold p-2" style={{color: scenario.class1.color}}>Predicted {scenario.class1.name}</div>
-              <div className="bg-green-100 p-3 rounded font-bold text-green-800">True Positive ✓<br/><span className="text-xs font-normal">Correct!</span></div>
-              <div className="bg-red-100 p-3 rounded font-bold text-red-800">False Positive ✗<br/><span className="text-xs font-normal">Wrong prediction</span></div>
+              <div className={`p-3 rounded font-bold ${isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-800'}`}>
+                True Positive ✓<br/><span className="text-xs font-normal">Correct!</span>
+              </div>
+              <div className={`p-3 rounded font-bold ${isDark ? 'bg-red-900/40 text-red-400' : 'bg-red-100 text-red-800'}`}>
+                False Positive ✗<br/><span className="text-xs font-normal">Wrong prediction</span>
+              </div>
               
               <div className="font-bold p-2" style={{color: scenario.class2.color}}>Predicted {scenario.class2.name}</div>
-              <div className="bg-yellow-100 p-3 rounded font-bold text-yellow-800">False Negative ✗<br/><span className="text-xs font-normal">Missed it</span></div>
-              <div className="bg-green-100 p-3 rounded font-bold text-green-800">True Negative ✓<br/><span className="text-xs font-normal">Correct!</span></div>
+              <div className={`p-3 rounded font-bold ${isDark ? 'bg-yellow-900/40 text-yellow-400' : 'bg-yellow-100 text-yellow-800'}`}>
+                False Negative ✗<br/><span className="text-xs font-normal">Missed it</span>
+              </div>
+              <div className={`p-3 rounded font-bold ${isDark ? 'bg-green-900/40 text-green-400' : 'bg-green-100 text-green-800'}`}>
+                True Negative ✓<br/><span className="text-xs font-normal">Correct!</span>
+              </div>
             </div>
           </div>
           
           <div className="space-y-3">
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <p className="font-bold text-gray-800">Accuracy = (TP + TN) / Total</p>
-              <p className="text-sm text-gray-600">% of all predictions that were correct</p>
+            <div className={`p-3 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <p className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Accuracy = (TP + TN) / Total</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>% of all predictions that were correct</p>
             </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <p className="font-bold text-gray-800">Precision = TP / (TP + FP)</p>
-              <p className="text-sm text-gray-600">When we predict "{scenario.class1.name}", how often are we right?</p>
+            <div className={`p-3 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <p className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Precision = TP / (TP + FP)</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>When we predict "{scenario.class1.name}", how often are we right?</p>
             </div>
-            <div className="bg-white p-3 rounded-lg shadow-sm">
-              <p className="font-bold text-gray-800">Recall = TP / (TP + FN)</p>
-              <p className="text-sm text-gray-600">Of all actual {scenario.class1.name}s, how many did we catch?</p>
+            <div className={`p-3 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+              <p className={`font-bold ${isDark ? 'text-gray-200' : 'text-gray-800'}`}>Recall = TP / (TP + FN)</p>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Of all actual {scenario.class1.name}s, how many did we catch?</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* EDUCATIONAL: DECISION BOUNDARIES */}
-      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl shadow-lg p-6">
-        <h3 className="text-xl font-bold text-purple-700 mb-3">Understanding Decision Boundaries</h3>
-        <p className="text-gray-700 mb-4">The dashed line on the chart is the <strong>decision boundary</strong>—the line where the model switches from "<span style={{color: scenario.class2.color}}>{scenario.class2.name}</span>" to "<span style={{color: scenario.class1.color}}>{scenario.class1.name}</span>".</p>
+      <div className={`rounded-xl shadow-lg p-6 ${
+        isDark ? 'bg-purple-900/20' : 'bg-gradient-to-br from-purple-50 to-pink-50'
+      }`}>
+        <h3 className={`text-xl font-bold mb-3 ${isDark ? 'text-purple-400' : 'text-purple-700'}`}>
+          Understanding Decision Boundaries
+        </h3>
+        <p className={`mb-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+          The dashed line on the chart is the <strong>decision boundary</strong>—the line where the model switches from 
+          "<span style={{color: scenario.class2.color}}>{scenario.class2.name}</span>" to 
+          "<span style={{color: scenario.class1.color}}>{scenario.class1.name}</span>".
+        </p>
         
         <div className="grid md:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="font-bold text-blue-700 mb-2">Linear Boundaries</h4>
-            <p className="text-sm text-gray-600">Logistic Regression, Linear SVM, Naive Bayes</p>
-            <p className="text-xs text-gray-500 mt-2 italic">Straight lines. Simple but limited.</p>
+          <div className={`p-4 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <h4 className={`font-bold mb-2 ${isDark ? 'text-blue-400' : 'text-blue-700'}`}>Linear Boundaries</h4>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Logistic Regression, Linear SVM, Naive Bayes</p>
+            <p className={`text-xs mt-2 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Straight lines. Simple but limited.</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="font-bold text-green-700 mb-2">Non-Linear Boundaries</h4>
-            <p className="text-sm text-gray-600">Decision Trees, SVM (RBF), Neural Networks</p>
-            <p className="text-xs text-gray-500 mt-2 italic">Curves and shapes. More flexible.</p>
+          <div className={`p-4 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <h4 className={`font-bold mb-2 ${isDark ? 'text-green-400' : 'text-green-700'}`}>Non-Linear Boundaries</h4>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Decision Trees, SVM (RBF), Neural Networks</p>
+            <p className={`text-xs mt-2 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Curves and shapes. More flexible.</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <h4 className="font-bold text-orange-700 mb-2">Instance-Based</h4>
-            <p className="text-sm text-gray-600">k-NN, Random Forest</p>
-            <p className="text-xs text-gray-500 mt-2 italic">Irregular, data-driven boundaries.</p>
+          <div className={`p-4 rounded-lg shadow-sm ${isDark ? 'bg-slate-800' : 'bg-white'}`}>
+            <h4 className={`font-bold mb-2 ${isDark ? 'text-orange-400' : 'text-orange-700'}`}>Instance-Based</h4>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>k-NN, Random Forest</p>
+            <p className={`text-xs mt-2 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>Irregular, data-driven boundaries.</p>
           </div>
         </div>
       </div>
