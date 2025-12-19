@@ -11,7 +11,7 @@ import { PolynomialEducation, GeneralEducation } from './regression/RegressionEd
 import ParameterCard from './shared/ParameterCard';
 import ModelDescription from './shared/ModelDescription';
 import CurvatureTuner from './CurvatureTuner';
-import CsvUploadButton from './shared/CsvUploadButton';
+import DataUploadButton from './shared/DataUploadButton.jsx';
 
 const RegressionTab = () => {
   const { isDark, bgCard, text, textMuted, border } = useTheme();
@@ -42,9 +42,11 @@ const RegressionTab = () => {
 
   const handleRegenerate = () => {
     setRawData(generateData());
+    // If regenerating while in custom mode, revert to default scenario to ensure data matches labels
     if (activeScenario === 'custom') setActiveScenario('salary');
   };
 
+  // Robust Data Upload Handler
   const handleDataUpload = (payload) => {
     if (!payload) return;
 
@@ -52,6 +54,7 @@ const RegressionTab = () => {
     let newXLabel = 'X Value';
     let newYLabel = 'Y Value';
 
+    // Handle both array format and object format with labels
     if (Array.isArray(payload)) {
       incomingData = payload;
     } else if (payload.data && Array.isArray(payload.data)) {
@@ -59,10 +62,11 @@ const RegressionTab = () => {
       newXLabel = payload.xLabel || newXLabel;
       newYLabel = payload.yLabel || newYLabel;
     } else {
-      console.error("Invalid data format");
+      console.error("Invalid data format received");
       return;
     }
 
+    // Map to internal chart format
     const formattedData = incomingData.map((point, index) => ({
       id: index,
       experience: point.x,
@@ -75,11 +79,12 @@ const RegressionTab = () => {
     setActiveScenario('custom');
     setCustomX(newXLabel);
     setCustomY(newYLabel);
-    setIsManualMode(false);
+    setIsManualMode(false); // Switch to Auto so the model fits the new data immediately
   };
 
   const models = useMemo(() => calculateModelFits(rawData, activeScenario), [rawData, activeScenario]);
 
+  // Calculate the regression line/curve based on Auto or Manual mode
   const chartData = useMemo(() => {
     if (activeModel === 'linear' && isManualMode) {
       return rawData.map(d => ({ ...d, predicted: manualIntercept + (manualSlope * d.experience) }));
@@ -98,6 +103,7 @@ const RegressionTab = () => {
   const normalPoints = chartData.filter(d => !d.isOutlier);
   const outlierPoints = chartData.filter(d => d.isOutlier);
 
+  // Disable manual mode for complex models where it doesn't apply
   useEffect(() => {
     if (['tree', 'forest', 'svm'].includes(activeModel)) setIsManualMode(false);
   }, [activeModel]);
@@ -105,7 +111,7 @@ const RegressionTab = () => {
   // --- RENDER ---
   return (
       <div className="max-w-6xl mx-auto">
-        {/* SCENARIO PICKER */}
+        {/* 1. SCENARIO PICKER */}
         <div className={`rounded-xl shadow-lg p-4 mb-6 ${bgCard}`}>
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <span className={`text-sm font-bold ${text}`}>What are you predicting?</span>
@@ -140,7 +146,7 @@ const RegressionTab = () => {
           )}
         </div>
 
-        {/* MODEL SELECTION */}
+        {/* 2. MODEL SELECTION */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           {Object.entries(models).map(([key, model]) => (
               <button
@@ -158,14 +164,16 @@ const RegressionTab = () => {
           ))}
         </div>
 
-        {/* CONTROLS */}
+        {/* 3. CONTROLS BAR */}
         <div className="flex flex-wrap justify-between items-center mb-4 px-2 gap-4">
+          {/* Legend */}
           <div className="flex gap-4 text-sm font-medium">
             <div className="flex items-center gap-1"><span className={`w-3 h-3 rounded-full ${isDark ? 'bg-slate-500' : 'bg-slate-400'}`}></span><span className={textMuted}>Normal</span></div>
             <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500"></span><span className="text-red-500">Outlier</span></div>
             <div className="flex items-center gap-1"><span className="w-6 h-1 rounded" style={{ backgroundColor: models[activeModel].color }}></span><span style={{ color: models[activeModel].color }}>Prediction</span></div>
           </div>
 
+          {/* Buttons */}
           <div className="flex items-center gap-3">
             {['linear', 'polynomial'].includes(activeModel) && (
                 <div className={`flex items-center rounded-full px-1 py-1 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
@@ -173,10 +181,11 @@ const RegressionTab = () => {
                   <button onClick={() => setIsManualMode(true)} className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${isManualMode ? 'bg-indigo-600 text-white shadow' : isDark ? 'text-gray-400 hover:text-gray-300' : 'text-gray-500 hover:text-gray-700'}`}>Manual Tune</button>
                 </div>
             )}
+
             {activeModel === 'polynomial' && <CurvatureTuner w2={squaredTerm} setW2={setSquaredTerm} />}
 
             <div className="flex items-center gap-2 border-l pl-3 border-slate-600">
-              <CsvUploadButton onUpload={handleDataUpload} />
+              <DataUploadButton onUpload={handleDataUpload} />
               <button onClick={handleRegenerate} className={`p-2 rounded-full transition-all shadow-md ml-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' : 'bg-white hover:bg-indigo-50 text-indigo-600'}`} title="Shuffle Outliers"><span className="text-xl">🎲</span></button>
               <button onClick={handleRegenerate} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg px-5 py-2.5 rounded-full transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
@@ -186,7 +195,7 @@ const RegressionTab = () => {
           </div>
         </div>
 
-        {/* COMPONENT: REGRESSION CHART */}
+        {/* 4. MAIN CHART */}
         <RegressionChart
             chartData={chartData}
             normalPoints={normalPoints}
@@ -196,7 +205,7 @@ const RegressionTab = () => {
             isManualMode={isManualMode}
         />
 
-        {/* MANUAL TUNING PANEL */}
+        {/* 5. MANUAL TUNING PANEL */}
         {['linear', 'polynomial'].includes(activeModel) && isManualMode && (
             <div className={`rounded-xl p-6 mb-6 border ${isDark ? 'bg-slate-800 border-indigo-500/30' : 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-100'}`}>
               <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -247,7 +256,7 @@ const RegressionTab = () => {
             </div>
         )}
 
-        {/* PARAMETER DASHBOARD */}
+        {/* 6. AUTO PARAMETERS */}
         {!isManualMode && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
               {models[activeModel].parameters
@@ -258,15 +267,16 @@ const RegressionTab = () => {
             </div>
         )}
 
+        {/* 7. DESCRIPTION */}
         <div className="mt-8">
           <ModelDescription {...descriptions[activeModel]} color={models[activeModel].color} />
         </div>
 
-        {/* EDUCATIONAL SECTIONS */}
-        {/* Polynomial Education only shows if active model is polynomial */}
+        {/* 8. EDUCATION SECTIONS */}
+        {/* Polynomial specific education */}
         {activeModel === 'polynomial' && <PolynomialEducation />}
 
-        {/* General Education is now unconditional, as requested */}
+        {/* General concepts - Always Shown */}
         <GeneralEducation fittingData={fittingData} />
       </div>
   );
