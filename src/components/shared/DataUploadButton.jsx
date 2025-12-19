@@ -1,9 +1,8 @@
-// src/components/shared/DataUploadButton.jsx
 import React, { useRef, useState } from 'react';
 import * as XLSX from 'xlsx';
-// Ensure this path matches EXACTLY where you saved the file. 
-// If it fails, check if the file is .png or .PNG or .jpeg
-import dummyExample from '/public/images/dummyExample.png';
+
+// NOTE: If using the public folder, we do not need to import the image.
+// We will reference it directly by string in the <img> tag below.
 
 const DataUploadButton = ({ onUpload }) => {
     const fileInputRef = useRef(null);
@@ -60,7 +59,9 @@ const DataUploadButton = ({ onUpload }) => {
 
         try {
             const data = await file.arrayBuffer();
-            const workbook = XLSX.read(data);
+            // CRITICAL FIX: The { type: 'array' } option is required for binary Excel files!
+            const workbook = XLSX.read(data, { type: 'array' });
+
             const worksheetName = workbook.SheetNames[0];
             const worksheet = workbook.Sheets[worksheetName];
             const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
@@ -85,8 +86,7 @@ const DataUploadButton = ({ onUpload }) => {
             />
 
             {showTooltip && (
-                <div
-                    className="absolute bottom-full mb-3 right-0 w-80 p-4 bg-slate-900 text-slate-200 text-sm rounded-xl shadow-2xl border border-slate-700 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-200">
+                <div className="absolute bottom-full mb-3 right-0 w-80 p-4 bg-slate-900 text-slate-200 text-sm rounded-xl shadow-2xl border border-slate-700 z-50 pointer-events-none animate-in fade-in slide-in-from-bottom-2 duration-200">
                     <h4 className="font-bold text-white mb-2 text-base">Data Format Guide</h4>
                     <p className="mb-3 text-slate-400 leading-relaxed text-xs">
                         Upload an Excel or CSV file. The first row must contain <strong>headers</strong>.
@@ -94,21 +94,22 @@ const DataUploadButton = ({ onUpload }) => {
                     </p>
 
                     <div className="rounded-lg overflow-hidden border border-slate-600 mb-2 bg-white">
-                        {/* If the image fails to load, it will show alt text instead of crashing */}
-                        <img src={dummyExample} alt="Example: Row 1 has headers, Row 2+ has data."
-                             className="w-full h-auto object-cover opacity-90"/>
+                        {/* FIX: Use path directly since it is in the public folder */}
+                        <img
+                            src="/images/dummyExample.png"
+                            alt="Example: Row 1 has headers, Row 2+ has data."
+                            className="w-full h-auto object-cover opacity-90"
+                        />
                     </div>
 
-                    <p className="mb-3 text-slate-400 leading-relaxed text-xs">
+                    <p className="mb-1 text-slate-400 leading-relaxed text-xs">
                         Example: X = TvAdBudget, Y = ProductSales
                     </p>
-                    <p className="mb-3 text-slate-400 leading-relaxed text-xs">
-                       Add Measurement (Units) in column A and B header of the file
+                    <p className="mb-3 text-slate-500 leading-relaxed text-[10px] italic">
+                        (Tip: Add Units like £ or kg in the headers)
                     </p>
 
-
-                    <div
-                        className="absolute -bottom-2 right-8 w-4 h-4 bg-slate-900 border-b border-r border-slate-700 transform rotate-45"></div>
+                    <div className="absolute -bottom-2 right-8 w-4 h-4 bg-slate-900 border-b border-r border-slate-700 transform rotate-45"></div>
                 </div>
             )}
 
@@ -136,8 +137,8 @@ const DataUploadButton = ({ onUpload }) => {
 
             {error && (
                 <span className="text-red-400 text-xs mt-1 bg-red-950/30 px-2 py-1 rounded border border-red-900/50">
-          {error}
-        </span>
+                  {error}
+                </span>
             )}
         </div>
     );

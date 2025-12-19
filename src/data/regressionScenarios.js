@@ -1,3 +1,4 @@
+// src/components/shared/regressionScenarios.js
 export const contextData = {
     salary: {
         wTitle: "The Annual Raise",

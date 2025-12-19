@@ -1,17 +1,16 @@
 import React, { useState, useMemo, useEffect } from 'react';
+// Ensure these paths are correct!
 import { generateData, calculateModelFits, descriptions, generateFittingExamples } from '../data/regressionModels';
-import { contextData, presetScenarios } from '../data/regressionScenarios'; // Import static data
+import { contextData, presetScenarios } from '../data/regressionScenarios';
 import { useTheme } from '../context/ThemeContext';
 
-// Import refactored components
+// Components
 import RegressionChart from './regression/RegressionChart';
 import { PolynomialEducation, GeneralEducation } from './regression/RegressionEducation';
-
-// Import shared components
 import ParameterCard from './shared/ParameterCard';
 import ModelDescription from './shared/ModelDescription';
 import CurvatureTuner from './CurvatureTuner';
-import DataUploadButton from './shared/DataUploadButton.jsx';
+import DataUploadButton from './shared/DataUploadButton';
 
 const RegressionTab = () => {
   const { isDark, bgCard, text, textMuted, border } = useTheme();
@@ -19,16 +18,75 @@ const RegressionTab = () => {
   // --- STATE ---
   const [activeModel, setActiveModel] = useState('linear');
   const [activeScenario, setActiveScenario] = useState('salary');
+
   const [customX, setCustomX] = useState('X Value');
   const [customY, setCustomY] = useState('Y Value');
-  const [rawData, setRawData] = useState(generateData);
+
+  // Safe initialization: ensure generateData returns an array, or fallback to empty array
+  const [rawData, setRawData] = useState(() => {
+    const init = generateData ? generateData() : [];
+    return Array.isArray(init) ? init : [];
+  });
+
   const [fittingData] = useState(generateFittingExamples);
 
-  // Manual Mode State
   const [isManualMode, setIsManualMode] = useState(false);
   const [manualSlope, setManualSlope] = useState(5);
   const [manualIntercept, setManualIntercept] = useState(40);
   const [squaredTerm, setSquaredTerm] = useState(-0.5);
+
+  // --- MATH HELPERS (Safe) ---
+  const fitLinearRegression = (data) => {
+    if (!data || data.length < 2) return { m: 1, b: 0 }; // Safe guard
+
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    const n = data.length;
+
+    data.forEach(p => {
+      // Ensure properties exist
+      const x = p.experience || 0;
+      const y = p.actual || 0;
+      sumX += x;
+      sumY += y;
+      sumXY += x * y;
+      sumXX += x * x;
+    });
+
+    const denominator = (n * sumXX - sumX * sumX);
+    if (denominator === 0) return { m: 0, b: sumY / n };
+
+    const m = (n * sumXY - sumX * sumY) / denominator;
+    const b = (sumY - m * sumX) / n;
+    return { m, b };
+  };
+
+  const fitQuadraticRegression = (data) => {
+    if (!data || data.length < 3) return { a: 0, b: 1, c: 0 }; // Safe guard
+
+    let sx = 0, sx2 = 0, sx3 = 0, sx4 = 0, sy = 0, sxy = 0, sx2y = 0;
+    const n = data.length;
+
+    data.forEach(p => {
+      const x = p.experience || 0;
+      const y = p.actual || 0;
+      sx += x;
+      sx2 += x * x;
+      sx3 += x * x * x;
+      sx4 += x * x * x * x;
+      sy += y;
+      sxy += x * y;
+      sx2y += x * x * y;
+    });
+
+    const D = n * (sx2 * sx4 - sx3 * sx3) - sx * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx3 - sx2 * sx2);
+    if (D === 0) return { a: 0, b: 0, c: 0 };
+
+    const Da = sy * (sx2 * sx4 - sx3 * sx3) - sx * (sxy * sx4 - sx2y * sx3) + sx2 * (sxy * sx3 - sx2y * sx2);
+    const Db = n * (sxy * sx4 - sx2y * sx3) - sy * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx2y - sx2 * sxy);
+    const Dc = n * (sx2 * sx2y - sx3 * sxy) - sx * (sx * sx2y - sx2 * sxy) + sy * (sx * sx3 - sx2 * sx2);
+
+    return { a: Da / D, b: Db / D, c: Dc / D };
+  };
 
   // --- LOGIC ---
   const scenario = useMemo(() => {
@@ -42,11 +100,12 @@ const RegressionTab = () => {
 
   const handleRegenerate = () => {
     setRawData(generateData());
-    // If regenerating while in custom mode, revert to default scenario to ensure data matches labels
     if (activeScenario === 'custom') setActiveScenario('salary');
+    setManualSlope(5);
+    setManualIntercept(40);
+    setSquaredTerm(-0.5);
   };
 
-  // Robust Data Upload Handler
   const handleDataUpload = (payload) => {
     if (!payload) return;
 
@@ -54,7 +113,6 @@ const RegressionTab = () => {
     let newXLabel = 'X Value';
     let newYLabel = 'Y Value';
 
-    // Handle both array format and object format with labels
     if (Array.isArray(payload)) {
       incomingData = payload;
     } else if (payload.data && Array.isArray(payload.data)) {
@@ -66,7 +124,6 @@ const RegressionTab = () => {
       return;
     }
 
-    // Map to internal chart format
     const formattedData = incomingData.map((point, index) => ({
       id: index,
       experience: point.x,
@@ -75,43 +132,70 @@ const RegressionTab = () => {
       label: { custom: `Row ${index + 1}` }
     }));
 
+    const { m, b } = fitLinearRegression(formattedData);
+
     setRawData(formattedData);
     setActiveScenario('custom');
     setCustomX(newXLabel);
     setCustomY(newYLabel);
-    setIsManualMode(false); // Switch to Auto so the model fits the new data immediately
+    setManualSlope(Number(m.toFixed(2)));
+    setManualIntercept(Number(b.toFixed(2)));
+    setIsManualMode(false);
   };
 
   const models = useMemo(() => calculateModelFits(rawData, activeScenario), [rawData, activeScenario]);
 
-  // Calculate the regression line/curve based on Auto or Manual mode
   const chartData = useMemo(() => {
-    if (activeModel === 'linear' && isManualMode) {
-      return rawData.map(d => ({ ...d, predicted: manualIntercept + (manualSlope * d.experience) }));
+    if (!rawData || rawData.length === 0) return [];
+
+    if (activeModel === 'linear') {
+      const fit = fitLinearRegression(rawData);
+      const slope = isManualMode ? manualSlope : fit.m;
+      const intercept = isManualMode ? manualIntercept : fit.b;
+
+      return rawData.map(d => ({
+        ...d,
+        predicted: intercept + (slope * d.experience)
+      }));
     }
-    if (activeModel === 'polynomial' && isManualMode) {
-      return rawData.map(d => {
-        const linearPart = manualIntercept + (manualSlope * d.experience);
-        const xCentered = d.experience - 10;
-        const curvePart = squaredTerm * 1.5 * (xCentered * xCentered);
-        return { ...d, predicted: linearPart - curvePart };
-      });
+
+    if (activeModel === 'polynomial') {
+      let a, b, c;
+      if (isManualMode) {
+        const xMax = rawData.length > 0 ? Math.max(...rawData.map(p => p.experience)) : 20;
+        const xCenter = xMax / 2;
+        a = squaredTerm / 10;
+        b = manualSlope - (2 * a * xCenter);
+        c = manualIntercept + (a * xCenter * xCenter) - (manualSlope * xCenter);
+      } else {
+        const fit = fitQuadraticRegression(rawData);
+        a = fit.a;
+        b = fit.b;
+        c = fit.c;
+      }
+      return rawData.map(d => ({
+        ...d,
+        predicted: (a * d.experience * d.experience) + (b * d.experience) + c
+      }));
     }
-    return models[activeModel].data;
+
+    // Safety check for other models
+    return models[activeModel]?.data || [];
   }, [activeModel, isManualMode, rawData, manualSlope, manualIntercept, models, squaredTerm]);
 
   const normalPoints = chartData.filter(d => !d.isOutlier);
   const outlierPoints = chartData.filter(d => d.isOutlier);
 
-  // Disable manual mode for complex models where it doesn't apply
   useEffect(() => {
-    if (['tree', 'forest', 'svm'].includes(activeModel)) setIsManualMode(false);
+    if (['tree', 'forest', 'svm', 'knn', 'neural'].includes(activeModel)) {
+      setIsManualMode(false);
+    }
   }, [activeModel]);
 
-  // --- RENDER ---
   return (
       <div className="max-w-6xl mx-auto">
-        {/* 1. SCENARIO PICKER */}
+
+        {/* SCENARIO PICKER */}
         <div className={`rounded-xl shadow-lg p-4 mb-6 ${bgCard}`}>
           <div className="flex flex-wrap items-center gap-3 mb-3">
             <span className={`text-sm font-bold ${text}`}>What are you predicting?</span>
@@ -146,8 +230,9 @@ const RegressionTab = () => {
           )}
         </div>
 
-        {/* 2. MODEL SELECTION */}
+        {/* MODEL SELECTION */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+          {/* Safety Check: ensure models[key] exists */}
           {Object.entries(models).map(([key, model]) => (
               <button
                   key={key}
@@ -158,22 +243,20 @@ const RegressionTab = () => {
                           : isDark ? 'bg-slate-800 text-gray-300 hover:bg-slate-700' : 'bg-white text-gray-700 hover:bg-gray-50'
                   }`}
               >
-                <span className="text-2xl">{model.icon}</span>
-                <span className="text-xs">{model.name}</span>
+                <span className="text-2xl">{model?.icon}</span>
+                <span className="text-xs">{model?.name}</span>
               </button>
           ))}
         </div>
 
-        {/* 3. CONTROLS BAR */}
+        {/* CONTROLS */}
         <div className="flex flex-wrap justify-between items-center mb-4 px-2 gap-4">
-          {/* Legend */}
           <div className="flex gap-4 text-sm font-medium">
             <div className="flex items-center gap-1"><span className={`w-3 h-3 rounded-full ${isDark ? 'bg-slate-500' : 'bg-slate-400'}`}></span><span className={textMuted}>Normal</span></div>
             <div className="flex items-center gap-1"><span className="w-3 h-3 rounded-full bg-red-500"></span><span className="text-red-500">Outlier</span></div>
-            <div className="flex items-center gap-1"><span className="w-6 h-1 rounded" style={{ backgroundColor: models[activeModel].color }}></span><span style={{ color: models[activeModel].color }}>Prediction</span></div>
+            <div className="flex items-center gap-1"><span className="w-6 h-1 rounded" style={{ backgroundColor: models[activeModel]?.color || '#888' }}></span><span style={{ color: models[activeModel]?.color || '#888' }}>Prediction</span></div>
           </div>
 
-          {/* Buttons */}
           <div className="flex items-center gap-3">
             {['linear', 'polynomial'].includes(activeModel) && (
                 <div className={`flex items-center rounded-full px-1 py-1 border ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'}`}>
@@ -195,17 +278,17 @@ const RegressionTab = () => {
           </div>
         </div>
 
-        {/* 4. MAIN CHART */}
+        {/* CHART */}
         <RegressionChart
             chartData={chartData}
             normalPoints={normalPoints}
             outlierPoints={outlierPoints}
             scenario={scenario}
-            modelColor={models[activeModel].color}
+            modelColor={models[activeModel]?.color || '#888'}
             isManualMode={isManualMode}
         />
 
-        {/* 5. MANUAL TUNING PANEL */}
+        {/* MANUAL TUNING */}
         {['linear', 'polynomial'].includes(activeModel) && isManualMode && (
             <div className={`rounded-xl p-6 mb-6 border ${isDark ? 'bg-slate-800 border-indigo-500/30' : 'bg-gradient-to-r from-indigo-50 to-blue-50 border-indigo-100'}`}>
               <div className="flex flex-col md:flex-row gap-8 items-start">
@@ -237,46 +320,70 @@ const RegressionTab = () => {
                         <span>y = <span className="text-pink-400 font-bold">{squaredTerm}</span>x² + <span className="text-yellow-400 font-bold">{manualSlope}</span>x + <span className="text-green-400 font-bold">{manualIntercept}</span></span>
                     )}
                   </div>
+
                   <div>
                     <div className="flex justify-between mb-1">
                       <label className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Weight / Slope (w)</label>
                       <span className="font-mono text-blue-500 font-bold text-lg">{manualSlope}</span>
                     </div>
-                    <input type="range" min="0" max="10" step="0.1" value={manualSlope} onChange={(e) => setManualSlope(parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                    <input
+                        type="range"
+                        min={manualSlope < 0 ? manualSlope * 2 : 0}
+                        max={manualSlope > 10 ? manualSlope * 3 : 10}
+                        step={Math.abs(manualSlope) > 50 ? 1 : 0.1}
+                        value={manualSlope}
+                        onChange={(e) => setManualSlope(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
                   </div>
                   <div>
                     <div className="flex justify-between mb-1">
                       <label className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Bias / Intercept (b)</label>
                       <span className="font-mono text-blue-500 font-bold text-lg">{manualIntercept}</span>
                     </div>
-                    <input type="range" min="20" max="100" step="1" value={manualIntercept} onChange={(e) => setManualIntercept(parseFloat(e.target.value))} className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600" />
+                    <input
+                        type="range"
+                        min={manualIntercept < 0 ? manualIntercept * 2 : 0}
+                        max={manualIntercept > 100 ? manualIntercept * 3 : 100}
+                        step={Math.abs(manualIntercept) > 100 ? 1 : 1}
+                        value={manualIntercept}
+                        onChange={(e) => setManualIntercept(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    />
                   </div>
                 </div>
               </div>
             </div>
         )}
 
-        {/* 6. AUTO PARAMETERS */}
+        {/* PARAMETERS (AUTO MODE) */}
         {!isManualMode && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {models[activeModel].parameters
-                  .filter(param => param.label !== 'Squared Term')
-                  .map((param, index) => (
-                      <ParameterCard key={index} param={param} color={models[activeModel].color} />
-                  ))}
+              {activeModel === 'linear' ? (
+                  <>
+                    <ParameterCard param={{label: "Calculated Slope (w)", value: fitLinearRegression(rawData).m.toFixed(2), desc: "Rate of change (Best Fit)"}} color={models.linear?.color} />
+                    <ParameterCard param={{label: "Calculated Intercept (b)", value: fitLinearRegression(rawData).b.toFixed(2), desc: "Starting value (Best Fit)"}} color={models.linear?.color} />
+                  </>
+              ) : activeModel === 'polynomial' ? (
+                  <>
+                    <ParameterCard param={{label: "Quad Term (a)", value: fitQuadraticRegression(rawData).a.toFixed(4), desc: "Curvature strength"}} color={models.polynomial?.color} />
+                    <ParameterCard param={{label: "Calculated Intercept (c)", value: fitQuadraticRegression(rawData).c.toFixed(2), desc: "Y-Intercept"}} color={models.polynomial?.color} />
+                  </>
+              ) : (
+                  models[activeModel]?.parameters
+                      ?.filter(param => param.label !== 'Squared Term')
+                      .map((param, index) => (
+                          <ParameterCard key={index} param={param} color={models[activeModel].color} />
+                      ))
+              )}
             </div>
         )}
 
-        {/* 7. DESCRIPTION */}
         <div className="mt-8">
-          <ModelDescription {...descriptions[activeModel]} color={models[activeModel].color} />
+          <ModelDescription {...descriptions[activeModel]} color={models[activeModel]?.color} />
         </div>
 
-        {/* 8. EDUCATION SECTIONS */}
-        {/* Polynomial specific education */}
         {activeModel === 'polynomial' && <PolynomialEducation />}
-
-        {/* General concepts - Always Shown */}
         <GeneralEducation fittingData={fittingData} />
       </div>
   );
