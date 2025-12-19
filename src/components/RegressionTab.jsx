@@ -6,6 +6,7 @@ import MiniChart from './shared/MiniChart';
 import ParameterCard from './shared/ParameterCard';
 import ModelDescription from './shared/ModelDescription';
 import CurvatureTuner from './CurvatureTuner';
+import CsvUploadButton from './shared/CsvUploadButton';
 
 const contextData = {
   salary: {
@@ -89,7 +90,51 @@ const RegressionTab = () => {
 
   const currentContext = contextData[activeScenario] || contextData.custom;
 
-  const handleRegenerate = () => setRawData(generateData());
+  const handleRegenerate = () => {
+    setRawData(generateData());
+    if (activeScenario === 'custom') {
+      setActiveScenario('salary');
+    }
+  };
+
+  // --- ROBUST UPLOAD HANDLER (Fixes the undefined error) ---
+  const handleDataUpload = (payload) => {
+    if (!payload) return;
+
+    // Determine if payload is the array directly OR an object containing the array
+    let incomingData = [];
+    let newXLabel = 'X Value';
+    let newYLabel = 'Y Value';
+
+    if (Array.isArray(payload)) {
+      // Legacy support: User just passed an array
+      incomingData = payload;
+    } else if (payload.data && Array.isArray(payload.data)) {
+      // Standard support: User passed { data, xLabel, yLabel }
+      incomingData = payload.data;
+      newXLabel = payload.xLabel || newXLabel;
+      newYLabel = payload.yLabel || newYLabel;
+    } else {
+      console.error("Invalid data format received");
+      return;
+    }
+
+    // Transform simple {x,y} to chart format
+    const formattedData = incomingData.map((point, index) => ({
+      id: index,
+      experience: point.x,
+      actual: point.y,
+      isOutlier: false,
+      label: { custom: `Row ${index + 1}` }
+    }));
+
+    setRawData(formattedData);
+    setActiveScenario('custom');
+    setCustomX(newXLabel);
+    setCustomY(newYLabel);
+    setIsManualMode(false);
+  };
+
   const models = useMemo(() => calculateModelFits(rawData, activeScenario), [rawData, activeScenario]);
 
   const chartData = useMemo(() => {
@@ -209,8 +254,12 @@ const RegressionTab = () => {
                 </div>
             )}
             {activeModel === 'polynomial' && <CurvatureTuner w2={squaredTerm} setW2={setSquaredTerm} />}
-            <div className="flex items-center gap-2">
-              <button onClick={handleRegenerate} className={`p-2 rounded-full transition-all shadow-md ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' : 'bg-white hover:bg-indigo-50 text-indigo-600'}`} title="Shuffle Outliers"><span className="text-xl">🎲</span></button>
+
+            <div className="flex items-center gap-2 border-l pl-3 border-slate-600">
+
+              <CsvUploadButton onUpload={handleDataUpload} />
+
+              <button onClick={handleRegenerate} className={`p-2 rounded-full transition-all shadow-md ml-2 ${isDark ? 'bg-slate-700 hover:bg-slate-600 text-yellow-400' : 'bg-white hover:bg-indigo-50 text-indigo-600'}`} title="Shuffle Outliers"><span className="text-xl">🎲</span></button>
               <button onClick={handleRegenerate} className="flex items-center gap-2 text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg px-5 py-2.5 rounded-full transform hover:scale-105">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M2.5 22v-6h6M2 11.5a10 10 0 0 1 18.8-4.3M22 12.5a10 10 0 0 1-18.8 4.3"/></svg>
                 Regenerate
@@ -224,8 +273,8 @@ const RegressionTab = () => {
           <ResponsiveContainer width="100%" height={400}>
             <ComposedChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke={chartGrid} />
-              <XAxis dataKey="experience" label={{ value: scenario.xLabel, position: 'insideBottom', offset: -10, fill: chartAxis }} stroke={chartAxis} type="number" domain={[0, 20]} />
-              <YAxis label={{ value: scenario.yLabel, angle: -90, position: 'insideLeft', offset: 0, fill: chartAxis }} stroke={chartAxis} domain={[20, 160]} />
+              <XAxis dataKey="experience" label={{ value: scenario.xLabel, position: 'insideBottom', offset: -10, fill: chartAxis }} stroke={chartAxis} type="number" domain={['auto', 'auto']} />
+              <YAxis label={{ value: scenario.yLabel, angle: -90, position: 'insideLeft', offset: 0, fill: chartAxis }} stroke={chartAxis} domain={['auto', 'auto']} />
               <Tooltip content={<DynamicTooltip />} cursor={{ stroke: chartGrid, strokeWidth: 2 }} />
               <Scatter dataKey="actual" data={normalPoints} fill={isDark ? '#64748b' : '#94a3b8'} name="Normal" shape="circle" />
               <Scatter dataKey="actual" data={outlierPoints} fill="#ef4444" name="Outliers" shape="circle" r={6} />
@@ -313,7 +362,7 @@ const RegressionTab = () => {
 
               <div className="grid md:grid-cols-4 gap-6 items-stretch">
 
-                           {/* Smile (U-Shape) Card */}
+                {/* Smile (U-Shape) Card */}
                 <div
                     className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
                   <MiniChart data={polyShapeData} lineKey="smile" color="#22c55e" title="The 'Smile' (U-Shape)"/>
