@@ -1,5 +1,6 @@
+// src/components/RegressionTab.jsx
 import React, { useState, useMemo, useEffect } from 'react';
-// Ensure these paths are correct!
+// Ensure paths are correct
 import { generateData, calculateModelFits, descriptions, generateFittingExamples } from '../data/regressionModels';
 import { contextData, presetScenarios } from '../data/regressionScenarios';
 import { useTheme } from '../context/ThemeContext';
@@ -22,7 +23,6 @@ const RegressionTab = () => {
   const [customX, setCustomX] = useState('X Value');
   const [customY, setCustomY] = useState('Y Value');
 
-  // Safe initialization: ensure generateData returns an array, or fallback to empty array
   const [rawData, setRawData] = useState(() => {
     const init = generateData ? generateData() : [];
     return Array.isArray(init) ? init : [];
@@ -35,15 +35,14 @@ const RegressionTab = () => {
   const [manualIntercept, setManualIntercept] = useState(40);
   const [squaredTerm, setSquaredTerm] = useState(-0.5);
 
-  // --- MATH HELPERS (Safe) ---
+  // --- MATH HELPER 1: Linear Regression (y = mx + b) ---
   const fitLinearRegression = (data) => {
-    if (!data || data.length < 2) return { m: 1, b: 0 }; // Safe guard
+    if (!data || data.length < 2) return { m: 1, b: 0 };
 
     let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
     const n = data.length;
 
     data.forEach(p => {
-      // Ensure properties exist
       const x = p.experience || 0;
       const y = p.actual || 0;
       sumX += x;
@@ -60,8 +59,13 @@ const RegressionTab = () => {
     return { m, b };
   };
 
+  // --- MATH HELPER 2: Polynomial (Quadratic) Regression (y = ax^2 + bx + c) ---
   const fitQuadraticRegression = (data) => {
-    if (!data || data.length < 3) return { a: 0, b: 1, c: 0 }; // Safe guard
+    if (!data || data.length < 3) {
+      // Not enough points for a curve, return linear line
+      const linear = fitLinearRegression(data);
+      return { a: 0, b: linear.m, c: linear.b };
+    }
 
     let sx = 0, sx2 = 0, sx3 = 0, sx4 = 0, sy = 0, sxy = 0, sx2y = 0;
     const n = data.length;
@@ -78,14 +82,31 @@ const RegressionTab = () => {
       sx2y += x * x * y;
     });
 
+    // Gaussian elimination denominator
     const D = n * (sx2 * sx4 - sx3 * sx3) - sx * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx3 - sx2 * sx2);
-    if (D === 0) return { a: 0, b: 0, c: 0 };
 
-    const Da = sy * (sx2 * sx4 - sx3 * sx3) - sx * (sxy * sx4 - sx2y * sx3) + sx2 * (sxy * sx3 - sx2y * sx2);
-    const Db = n * (sxy * sx4 - sx2y * sx3) - sy * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx2y - sx2 * sxy);
-    const Dc = n * (sx2 * sx2y - sx3 * sxy) - sx * (sx * sx2y - sx2 * sxy) + sy * (sx * sx3 - sx2 * sx2);
+    if (Math.abs(D) < 1e-9) {
+      // Collinear points (curve impossible), return linear fit
+      const linear = fitLinearRegression(data);
+      return { a: 0, b: linear.m, c: linear.b };
+    }
 
-    return { a: Da / D, b: Db / D, c: Dc / D };
+    // Solve for Intercept (c) - replaces first column
+    const D_c = sy * (sx2 * sx4 - sx3 * sx3) - sx * (sxy * sx4 - sx2y * sx3) + sx2 * (sxy * sx3 - sx2y * sx2);
+
+    // Solve for Slope (b) - replaces second column
+    const D_b = n * (sxy * sx4 - sx2y * sx3) - sy * (sx * sx4 - sx2 * sx3) + sx2 * (sx * sx2y - sx2 * sxy);
+
+    // Solve for Curve (a) - replaces third column
+    const D_a = n * (sx2 * sx2y - sx3 * sxy) - sx * (sx * sx2y - sx2 * sxy) + sy * (sx * sx3 - sx2 * sx2);
+
+    // FIX: Previous version swapped 'a' and 'c'. 
+    // D_a calculates the 'x^2' term (a). D_c calculates the intercept (c).
+    return {
+      a: D_a / D,
+      b: D_b / D,
+      c: D_c / D
+    };
   };
 
   // --- LOGIC ---
@@ -140,6 +161,7 @@ const RegressionTab = () => {
     setCustomY(newYLabel);
     setManualSlope(Number(m.toFixed(2)));
     setManualIntercept(Number(b.toFixed(2)));
+    setSquaredTerm(0);
     setIsManualMode(false);
   };
 
@@ -162,12 +184,16 @@ const RegressionTab = () => {
     if (activeModel === 'polynomial') {
       let a, b, c;
       if (isManualMode) {
+        // Manual mode: Normalize slider feel
         const xMax = rawData.length > 0 ? Math.max(...rawData.map(p => p.experience)) : 20;
         const xCenter = xMax / 2;
-        a = squaredTerm / 10;
+        const scaleFactor = (xMax * xMax) / 10;
+
+        a = scaleFactor > 0 ? (squaredTerm / scaleFactor) : 0;
         b = manualSlope - (2 * a * xCenter);
         c = manualIntercept + (a * xCenter * xCenter) - (manualSlope * xCenter);
       } else {
+        // Auto mode: Use corrected OLS
         const fit = fitQuadraticRegression(rawData);
         a = fit.a;
         b = fit.b;
@@ -179,7 +205,6 @@ const RegressionTab = () => {
       }));
     }
 
-    // Safety check for other models
     return models[activeModel]?.data || [];
   }, [activeModel, isManualMode, rawData, manualSlope, manualIntercept, models, squaredTerm]);
 
@@ -232,7 +257,6 @@ const RegressionTab = () => {
 
         {/* MODEL SELECTION */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {/* Safety Check: ensure models[key] exists */}
           {Object.entries(models).map(([key, model]) => (
               <button
                   key={key}
@@ -321,6 +345,7 @@ const RegressionTab = () => {
                     )}
                   </div>
 
+                  {/* Sliders */}
                   <div>
                     <div className="flex justify-between mb-1">
                       <label className={`text-sm font-bold ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>Weight / Slope (w)</label>

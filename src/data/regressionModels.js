@@ -315,8 +315,7 @@ export const descriptions = {
     polynomial: {
         title: 'Polynomial Regression',
         math: 'y = w₁x + w₂x² + b',
-        desc: 'Now we\'re adding curves. This model understands that things can grow fast in the beginning but eventually hit a ceiling (plateau).',
-        when: 'When the trend clearly isn\'t straight (e.g. rapid growth then slowing down).',
+        desc: 'Events in life don\'t always progress in a straight line. Sometimes things start slow, then snowball. Other times, things take off rapidly, only to tail off and fade. This model understands that. For polynomial regression, it solves the Normal Equations using Cramer\'s Rule directly in your browser, calculating exact matrix determinants to guarantee the mathematically optimal curve for your specific dataset.',        when: 'When the trend clearly isn\'t straight (e.g. rapid growth then slowing down).',
         howItWorks: 'Instead of just x, we use x² or x³. This lets the line bend. It fits the "inverted U" shape often found in nature and economics.',
         realExample: 'Junior staff get big raises fast; senior staff get smaller percentage raises. Plants grow fast then stop.',
         visualPattern: 'A smooth curve that climbs steep and then flattens out. It follows the "shape" of the data better.',
