@@ -104,7 +104,7 @@ export const PolynomialEducation = () => {
                             <li><strong>X:</strong> Time</li>
                             <li><strong>Y:</strong> Views</li>
                         </ul>
-                        <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}><b>Assumption:</b> Starts slow, then explodes exponentially.</p>
+                        <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}><b>Assumption:</b> Starts slow, then explodes exponentially. Or worse still, a shilled crypto coin, typically with a higher parabolic curve.</p>
                     </div>
                     <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-yellow-400' : 'text-yellow-600'}`}>"Growth accelerates rapidly."</p>
                 </ShapeCard>

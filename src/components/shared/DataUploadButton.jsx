@@ -103,9 +103,9 @@ const DataUploadButton = ({ onUpload }) => {
                     </div>
 
                     <p className="mb-1 text-slate-400 leading-relaxed text-xs">
-                        Example: X = TvAdBudget, Y = ProductSales
+                        Example: X = TvAdBudget, Y = CarSales
                     </p>
-                    <p className="mb-3 text-slate-500 leading-relaxed text-[10px] italic">
+                    <p className="mb-3 text-slate-500 leading-relaxed text-[13px] italic">
                         (Tip: Add Units like £ or kg in the headers)
                     </p>
 
