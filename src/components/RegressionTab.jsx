@@ -313,6 +313,48 @@ const RegressionTab = () => {
 
               <div className="grid md:grid-cols-4 gap-6 items-stretch">
 
+                           {/* Smile (U-Shape) Card */}
+                <div
+                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
+                  <MiniChart data={polyShapeData} lineKey="smile" color="#22c55e" title="The 'Smile' (U-Shape)"/>
+                  <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
+                    Parabola: y = ax² + bx + c, a &gt; 0
+                  </div>
+                  <div className="mt-2 text-xs flex-grow space-y-4">
+                    <div>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                        Example 1: Driver Age vs. Claims
+                      </p>
+                      <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <li><strong>X:</strong> Age (Years) (Independent)</li>
+                        <li><strong>Y:</strong> Claims (Dependent)</li>
+                        <br/>
+                      </ul>
+                      <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                        <b>Assumption:</b> Young drivers (17-25) have high accident rates due to inexperience,
+                        middle-aged (35-55) are safest, then elderly (75+) see claims rise again.
+                      </p>
+                    </div>
+
+                    <div>
+                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
+                        Example 2: Plant Watering
+                      </p>
+                      <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
+                        <li><strong>X:</strong> Water given (mL) (Independent)</li>
+                        <li><strong>Y:</strong> Mortality Rate (%) (Dependent)</li>
+                        <br/>
+                      </ul>
+                      <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
+                        <b>Assumption:</b> Too little water (50mL) causes drought death,
+                        the right amount (200mL) keeps them healthy, but too much (500mL) drowns roots and causes death.
+                      </p>
+                    </div>
+                  </div>
+                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-green-400' : 'text-green-600'}`}>
+                    "Extremes are risky."
+                  </p>
+                </div>
                 {/* Frown (Sad Smile) Card */}
                 <div
                     className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
@@ -355,49 +397,6 @@ const RegressionTab = () => {
                   </div>
                   <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-red-400' : 'text-red-600'}`}>
                     "Rises to a peak, then falls."
-                  </p>
-                </div>
-
-                {/* Smile (U-Shape) Card */}
-                <div
-                    className={`p-4 rounded-xl border flex flex-col h-full ${isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200 shadow-sm'}`}>
-                  <MiniChart data={polyShapeData} lineKey="smile" color="#22c55e" title="The 'Smile' (U-Shape)"/>
-                  <div className="text-center font-mono text-xs text-slate-500 mb-3 mt-2">
-                    Parabola: y = ax² + bx + c, a &gt; 0
-                  </div>
-                  <div className="mt-2 text-xs flex-grow space-y-4">
-                    <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
-                        Example 1: Driver Age vs. Claims
-                      </p>
-                      <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Age (Years) (Independent)</li>
-                        <li><strong>Y:</strong> Claims (Dependent)</li>
-                        <br/>
-                      </ul>
-                      <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Young drivers (17-25) have high accident rates due to inexperience,
-                        middle-aged (35-55) are safest, then elderly (75+) see claims rise again.
-                      </p>
-                    </div>
-
-                    <div>
-                      <p className={`font-bold mb-1 ${isDark ? 'text-green-300' : 'text-green-700'}`}>
-                        Example 2: Plant Watering
-                      </p>
-                      <ul className={`list-disc pl-4 space-y-0.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>
-                        <li><strong>X:</strong> Water given (mL) (Independent)</li>
-                        <li><strong>Y:</strong> Mortality Rate (%) (Dependent)</li>
-                        <br/>
-                      </ul>
-                      <p className={`mt-1 italic ${isDark ? 'text-gray-500' : 'text-gray-500'}`}>
-                        <b>Assumption:</b> Too little water (50mL) causes drought death,
-                        the right amount (200mL) keeps them healthy, but too much (500mL) drowns roots and causes death.
-                      </p>
-                    </div>
-                  </div>
-                  <p className={`text-center font-bold pt-4 mt-auto ${isDark ? 'text-green-400' : 'text-green-600'}`}>
-                    "Extremes are risky."
                   </p>
                 </div>
 

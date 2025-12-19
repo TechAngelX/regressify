@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 130" fill="none">
+    <defs>
+        <linearGradient id="pulse-grad" x1="0" y1="0" x2="110" y2="0" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#6366f1"/>
+            <stop offset="100%" stop-color="#a855f7"/>
+        </linearGradient>
+        <filter id="pulse-glow">
+            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+            <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+        </filter>
+    </defs>
+    <g transform="translate(8, 16)">
+        <path d="M5 44 L24 44 L36 64 L54 8 L72 52 L86 34 L112 34" 
+              stroke="#6366f1" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.25" transform="translate(5, 5)"/>
+        <path d="M5 44 L24 44 L36 64 L54 8 L72 52 L86 34 L112 34" 
+              stroke="url(#pulse-grad)" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round" fill="none" filter="url(#pulse-glow)"/>
+        <circle cx="54" cy="8" r="8" fill="#a855f7" filter="url(#pulse-glow)"/>
+    </g>
+    <text x="142" y="58" font-family="system-ui, sans-serif" font-weight="600" font-size="56" fill="#ffffff" letter-spacing="-1">
+        regressify
+    </text>
+    <text x="145" y="95" font-family="system-ui, sans-serif" font-weight="500" font-size="17" fill="#a855f7" letter-spacing="2.5">
+        INTERACTIVE ML VISUALISER
+    </text>
+</svg>

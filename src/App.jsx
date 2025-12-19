@@ -1,9 +1,41 @@
+// src/App.jsx
+
 import React, { useState } from 'react';
 import { ThemeProvider, useTheme } from './context/ThemeContext';
 import RegressionTab from './components/RegressionTab';
 import ClassificationTab from './components/ClassificationTab';
 
-// --- Internal Component: Theme Toggle Button ---
+const RegressifyLogo = ({ className = '' }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 130" fill="none" className={className}>
+        <defs>
+            <linearGradient id="pulse-grad" x1="0" y1="0" x2="110" y2="0" gradientUnits="userSpaceOnUse">
+                <stop offset="0%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#a855f7"/>
+            </linearGradient>
+            <filter id="pulse-glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                    <feMergeNode in="coloredBlur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <g transform="translate(8, 16)">
+            <path d="M5 44 L24 44 L36 64 L54 8 L72 52 L86 34 L112 34"
+                  stroke="#6366f1" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" opacity="0.25" transform="translate(5, 5)"/>
+            <path d="M5 44 L24 44 L36 64 L54 8 L72 52 L86 34 L112 34"
+                  stroke="url(#pulse-grad)" strokeWidth="5.5" strokeLinecap="round" strokeLinejoin="round" fill="none" filter="url(#pulse-glow)"/>
+            <circle cx="54" cy="8" r="8" fill="#a855f7" filter="url(#pulse-glow)"/>
+        </g>
+        <text x="142" y="58" fontFamily="'Outfit', sans-serif" fontWeight="600" fontSize="56" fill="currentColor" letterSpacing="-1">
+            regressify
+        </text>
+        <text x="145" y="95" fontFamily="'Outfit', sans-serif" fontWeight="500" fontSize="17" fill="#6366f1" letterSpacing="2.5">
+            INTERACTIVE ML VISUALISER
+        </text>
+    </svg>
+);
+
 const ThemeToggle = () => {
     const { isDark, toggleTheme } = useTheme();
 
@@ -38,7 +70,6 @@ const ThemeToggle = () => {
     );
 };
 
-// --- Internal Component: Main Content Structure ---
 const AppContent = () => {
     const [activeTab, setActiveTab] = useState('regression');
     const { isDark, bg, bgCard, text, textMuted, border } = useTheme();
@@ -46,28 +77,34 @@ const AppContent = () => {
     return (
         <div className={`w-full min-h-screen p-8 transition-colors duration-300 ${bg}`}>
 
-            {/* LOGO & BRANDING */}
             <div className="absolute top-4 left-4 flex items-center gap-3">
-                <img src="/images/logo.png" alt="Tech Angel X Logo" className="w-16 h-16 rounded-full shadow-lg border-2 border-white" />
+                <img src="/images/logo.png" alt="Tech Angel X Logo"
+                     className="w-16 h-16 rounded-full shadow-lg border-2 border-white"/>
                 <div className="text-sm">
                     <p className={`font-bold ${text}`}>Tech Angel X</p>
                     <p className={`text-xs ${textMuted}`}>by Ricki Angel</p>
                 </div>
             </div>
 
-            {/* THEME TOGGLE */}
             <div className="absolute top-4 right-4">
-                <ThemeToggle />
+                <ThemeToggle/>
             </div>
 
-            {/* PAGE TITLE */}
-            <h1 className={`text-3xl font-bold text-center mb-2 mt-12 ${text}`}>Regressify: Interactive ML Visualiser</h1>
-            <div className="max-w-2xl mx-auto text-center mb-6">
-                <p className={`mb-2 ${textMuted}`}>Training a machine learning model isn't one-size-fits-all. Depending on your data, you might need the strict logic of a flowchart or the complex intuition of a neural network.</p>
-                <p className={`font-medium ${textMuted}`}>Explore how different algorithms approach the same problem.</p>
+            <div className="flex justify-center mt-2 mb-1">
+                <RegressifyLogo className={`w-[600px] h-auto ${text}`}/>
             </div>
 
-            {/* TAB NAVIGATION */}
+            <div className="max-w-2xl mx-auto text-center mb-4 space-y-3">
+                <p className={textMuted}>
+                    Training a machine learning model is a balancing act — too simple and you miss the pattern, too
+                    complex and you chase noise. The same data can reveal wildly different patterns depending on the
+                    algorithm.
+                </p>
+                <p className={`font-medium ${textMuted}`}>
+                    This self-contained web application lets you explore how various models — from straightforward
+                    linear fits to complex neural networks — interpret patterns in your data.
+                </p>
+            </div>
             <div className="max-w-6xl mx-auto mb-8">
                 <div className="flex justify-center">
                     <div className={`inline-flex rounded-xl p-1.5 shadow-lg border ${bgCard} ${border}`}>
@@ -100,14 +137,13 @@ const AppContent = () => {
                 </p>
             </div>
 
-            {/* TAB CONTENT */}
-            {activeTab === 'regression' && <RegressionTab />}
-            {activeTab === 'classification' && <ClassificationTab />}
+            {activeTab === 'regression' && <RegressionTab/>}
+            {activeTab === 'classification' && <ClassificationTab/>}
 
-            {/* FOOTER */}
             <div className={`mt-12 text-center pb-8 border-t pt-6 ${border}`}>
                 <p className={`text-sm ${textMuted}`}>
-                    {new Date().getFullYear()} <span className="font-semibold">Ricki Angel</span> | <span className="font-semibold text-indigo-500">Tech Angel X</span>
+                    {new Date().getFullYear()} <span className="font-semibold">Ricki Angel</span> | <span
+                    className="font-semibold text-indigo-500">Tech Angel X</span>
                 </p>
                 <p className={`text-xs mt-1 ${textMuted}`}>
                     Interactive ML Visualisation Tool
@@ -117,11 +153,10 @@ const AppContent = () => {
     );
 };
 
-// --- Root App Component ---
 function App() {
     return (
         <ThemeProvider>
-            <AppContent />
+            <AppContent/>
         </ThemeProvider>
     );
 }
