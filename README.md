@@ -1,7 +1,7 @@
 <div align="center">
   <img
     src="./public/images/logo-dark.svg"
-    alt="Regressify Logo"
+    alt="Regressify Logo" 
     width="500"
     style="margin-left: -10px;"
   />
